@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/* Light-only design system for DAIRY DEMO admin (no OS dark override). */
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --card2: #fbfcfd;
+  --border: #e8eaee;
+  --border2: #eef0f3;
+  --fg: #14161d;
+  --muted: #5b6270;
+  --faint: #99a0ac;
+  --brand: #e2231a;
+  --brand-fg: #ffffff;
+  --brand-soft: #fdecea;
+  --success: #16a34a;
+  --success-soft: #e7f6ec;
+  --warning: #d97706;
+  --warning-soft: #fbf0e1;
+  --info: #2563eb;
+  --info-soft: #e8eefc;
+  --danger: #dc2626;
+  --sidebar: #ffffff;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-card2: var(--card2);
+  --color-border: var(--border);
+  --color-border2: var(--border2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-brand: var(--brand);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-soft: var(--brand-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-danger: var(--danger);
+  --color-sidebar: var(--sidebar);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --radius-xl: 14px;
+}
+
+* { border-color: var(--border); }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+.tnum { font-variant-numeric: tabular-nums; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; border: 3px solid var(--bg); }
+::selection { background: var(--brand); color: #fff; }
+
+@keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.fade-up { animation: fade-up .45s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
