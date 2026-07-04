@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/common/widgets/custom_button.dart';
-import 'package:saathi/common/widgets/order_summary_card.dart';
-import 'package:saathi/data/models/order.dart';
-import 'package:saathi/helper/price_converter.dart';
-import 'package:saathi/helper/route_helper.dart';
-import 'package:saathi/providers/auth_provider.dart';
-import 'package:saathi/providers/cart_provider.dart';
-import 'package:saathi/providers/order_provider.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/custom_button.dart';
+import 'package:my_order_pro/common/widgets/order_summary_card.dart';
+import 'package:my_order_pro/data/models/order.dart';
+import 'package:my_order_pro/data/services/order_service.dart';
+import 'package:my_order_pro/helper/price_converter.dart';
+import 'package:my_order_pro/helper/route_helper.dart';
+import 'package:my_order_pro/providers/auth_provider.dart';
+import 'package:my_order_pro/providers/cart_provider.dart';
+import 'package:my_order_pro/providers/order_provider.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -24,34 +25,111 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _placing = false;
 
   Future<void> _placeOrder() async {
-    setState(() => _placing = true);
+    if (_placing) return;
+
     final cart = context.read<CartProvider>();
-    final orders = context.read<OrderProvider>();
+    if (cart.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Your cart is empty! Please add items to place an order.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final user = context.read<AuthProvider>().user;
-    final address = (user?.address.isNotEmpty ?? false)
-        ? user!.address
-        : '${user?.shopName ?? "My Shop"}, Main Bazaar, India';
+    if (user?.address.isEmpty ?? true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please add a valid delivery address before placing an order.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
-    await Future.delayed(const Duration(milliseconds: 700)); // simulate API
+    final orders = context.read<OrderProvider>();
+    if (_payment == PaymentMode.credit && cart.grandTotal > orders.usableCredit) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Insufficient credit limit to place this order.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
-    final order = orders.placeOrder(
-      cartItems: cart.items,
-      subtotal: cart.subtotal,
-      gst: cart.gst,
-      deliveryCharge: cart.deliveryCharge,
-      total: cart.grandTotal,
-      savings: cart.totalSavings,
-      paymentMode: _payment,
-      address: address,
-    );
-    cart.clear();
-    if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      RouteHelper.orderSuccess,
-      (r) => r.settings.name == RouteHelper.dashboard,
-      arguments: order,
-    );
+    setState(() => _placing = true);
+
+    try {
+      final address = user!.address;
+
+      // Map cart items for the order service
+      final itemsData = cart.items.map((item) {
+        return {
+          'product_id': item.product.id,
+          'qty': item.quantity,
+          'unit_price': item.unitPrice,
+        };
+      }).toList();
+
+      // Call the external OrderService
+      final orderId = await OrderService().placeOrder(
+        total: cart.grandTotal,
+        items: itemsData,
+      );
+
+      if (orderId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to place order. Please try again.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 700)); // simulate API
+
+      // Continue existing local provider logic
+      final order = orders.placeOrder(
+        id: orderId,
+        cartItems: cart.items,
+        subtotal: cart.subtotal,
+        gst: cart.gst,
+        deliveryCharge: cart.deliveryCharge,
+        total: cart.grandTotal,
+        savings: cart.totalSavings,
+        paymentMode: _payment,
+        address: address,
+      );
+      
+      cart.clear();
+      
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        RouteHelper.orderSuccess,
+        (r) => r.settings.name == RouteHelper.dashboard,
+        arguments: order,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to place order: $e'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _placing = false);
+      }
+    }
   }
 
   @override
@@ -60,7 +138,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final user = context.watch<AuthProvider>().user;
     final address = (user?.address.isNotEmpty ?? false)
         ? user!.address
-        : '${user?.shopName ?? "My Shop"}, Main Bazaar, India';
+        : 'No address added. Please add an address.';
 
     return Scaffold(
       appBar: AppBar(title: Text('Checkout', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge))),
@@ -88,8 +166,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pushNamed(context, RouteHelper.profile),
-                  child: Text('Change', style: robotoMedium.copyWith(color: AppColors.primary)),
+                  onPressed: _placing ? null : () => Navigator.pushNamed(context, RouteHelper.profile),
+                  child: Text('Change', style: robotoMedium.copyWith(
+                      color: _placing ? AppColors.textMedium : AppColors.primary)),
                 ),
               ],
             ),
@@ -151,51 +230,71 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _sectionTitle(String t) => Padding(
         padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
-        child: Text(t, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault)),
-      );
-
-  BoxDecoration _boxDeco(BuildContext context) => BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
+        child: Text(t, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
       );
 
   Widget _paymentTile(PaymentMode mode, IconData icon, String subtitle) {
-    final selected = _payment == mode;
+    final isSelected = _payment == mode;
+    
+    String title = '';
+    switch (mode) {
+      case PaymentMode.cod:
+        title = 'Cash on Delivery';
+        break;
+      case PaymentMode.online:
+        title = 'Pay Online';
+        break;
+      case PaymentMode.credit:
+        title = 'Pay Later (Khata)';
+        break;
+    }
+
     return GestureDetector(
-      onTap: () => setState(() => _payment = mode),
+      onTap: _placing ? null : () => setState(() => _payment = mode),
       child: Container(
         margin: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
         padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primaryLight : Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+        decoration: _boxDeco(context).copyWith(
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.border.withValues(alpha: 0.6),
-            width: selected ? 1.4 : 1,
+            color: isSelected ? AppColors.primary : AppColors.border.withValues(alpha: 0.6),
+            width: isSelected ? 1.5 : 1,
           ),
+          color: isSelected ? AppColors.primaryLight.withValues(alpha: 0.3) : Theme.of(context).cardColor,
         ),
         child: Row(
           children: [
-            Icon(icon, color: selected ? AppColors.primary : AppColors.textMedium),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : AppColors.background,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: isSelected ? Colors.white : AppColors.textMedium, size: 20),
+            ),
             const SizedBox(width: Dimensions.paddingSizeDefault),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(mode.label, style: robotoSemiBold.copyWith(
-                      color: selected ? AppColors.primary : AppColors.textDark)),
+                  Text(title, style: robotoSemiBold.copyWith(
+                      color: isSelected ? AppColors.primary : AppColors.textDark)),
                   const SizedBox(height: 2),
                   Text(subtitle, style: robotoRegular.copyWith(
                       color: AppColors.textMedium, fontSize: Dimensions.fontSizeSmall)),
                 ],
               ),
             ),
-            Icon(selected ? Icons.radio_button_checked : Icons.radio_button_off,
-                color: selected ? AppColors.primary : AppColors.textLight, size: 20),
+            if (isSelected)
+              const Icon(Icons.check_circle, color: AppColors.primary),
           ],
         ),
       ),
     );
   }
+
+  BoxDecoration _boxDeco(BuildContext context) => BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
+      );
 }

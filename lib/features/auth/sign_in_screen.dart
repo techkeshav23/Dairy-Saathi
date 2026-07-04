@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/common/widgets/app_logo.dart';
-import 'package:saathi/common/widgets/custom_button.dart';
-import 'package:saathi/helper/route_helper.dart';
-import 'package:saathi/providers/auth_provider.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/app_logo.dart';
+import 'package:my_order_pro/common/widgets/custom_button.dart';
+import 'package:my_order_pro/helper/route_helper.dart';
+import 'package:my_order_pro/providers/auth_provider.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -18,18 +18,25 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _phone = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   Future<void> _sendOtp() async {
+    if (!_formKey.currentState!.validate()) return;
+    
     final phone = _phone.text.trim();
-    if (phone.length != 10) {
+    final auth = context.read<AuthProvider>();
+    
+    // Unfocus keyboard
+    FocusScope.of(context).unfocus();
+    
+    final err = await auth.requestOtp(phone);
+    if (!mounted) return;
+    if (err != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid 10-digit mobile number')),
+        SnackBar(content: Text('Could not send OTP: $err'), backgroundColor: Colors.red),
       );
       return;
     }
-    final auth = context.read<AuthProvider>();
-    await auth.requestOtp(phone);
-    if (!mounted) return;
     Navigator.pushNamed(context, RouteHelper.verifyOtp, arguments: phone);
   }
 
@@ -43,92 +50,113 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
-          child: Column(
-            children: [
-              const SizedBox(height: 30),
-              const AppLogo(size: 84, showWordmark: true),
-              const SizedBox(height: 36),
-              Text('Sign In', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge)),
-              const SizedBox(height: 6),
-              Text('Login with your business mobile number',
-                  textAlign: TextAlign.center,
-                  style: robotoRegular.copyWith(color: AppColors.textMedium)),
-              const SizedBox(height: Dimensions.paddingSizeExtraLarge),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/brand/logo.png',
+                    width: 260,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => const AppLogo(size: 84, showWordmark: true),
+                  ),
+                  const SizedBox(height: 28),
+                  Text('Welcome Back', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge)),
+                  const SizedBox(height: 8),
+                  Text('Sign in to manage your wholesale business',
+                      textAlign: TextAlign.center,
+                      style: robotoRegular.copyWith(color: AppColors.textMedium, fontSize: Dimensions.fontSizeDefault)),
+                  const SizedBox(height: 40),
 
-              // Country selector (demo, fixed to India)
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: AppColors.border)),
-                ),
-                child: Row(
-                  children: [
-                    const Text('🇮🇳', style: TextStyle(fontSize: 20)),
-                    const SizedBox(width: Dimensions.paddingSizeSmall),
-                    Text('+91 India', style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault)),
-                    const Spacer(),
-                    const Icon(Icons.keyboard_arrow_down, color: AppColors.textMedium),
-                  ],
-                ),
-              ),
-              const SizedBox(height: Dimensions.paddingSizeSmall),
+                  // Mobile number field with integrated country code
+                  TextFormField(
+                    controller: _phone,
+                    keyboardType: TextInputType.phone,
+                    style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your mobile number';
+                      }
+                      if (!RegExp(r'^[6-9]\d{9}$').hasMatch(value)) {
+                        return 'Enter a valid 10-digit mobile number';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Mobile Number',
+                      hintStyle: robotoRegular.copyWith(color: AppColors.textLight),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('🇮🇳', style: TextStyle(fontSize: 20)),
+                            const SizedBox(width: 8),
+                            Text('+91', style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge)),
+                            const SizedBox(width: 8),
+                            Container(width: 1, height: 24, color: AppColors.border),
+                            const SizedBox(width: 8),
+                          ],
+                        ),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                        borderSide: const BorderSide(color: Colors.red),
+                      ),
+                      filled: true,
+                      fillColor: AppColors.card,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                  const SizedBox(height: Dimensions.paddingSizeExtraLarge),
 
-              // Mobile number (underline field)
-              TextField(
-                controller: _phone,
-                keyboardType: TextInputType.phone,
-                style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeLarge),
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(10),
+                  CustomButton(
+                    text: 'Get OTP', 
+                    isLoading: auth.loading, 
+                    onPressed: _sendOtp,
+                  ),
+                  const SizedBox(height: Dimensions.paddingSizeLarge),
+
+                  Text.rich(
+                    TextSpan(
+                      text: 'By signing in, I accept the ',
+                      style: robotoRegular.copyWith(
+                          color: AppColors.textLight, fontSize: Dimensions.fontSizeSmall),
+                      children: [
+                        TextSpan(text: 'Privacy Policy', style: robotoMedium.copyWith(
+                            color: AppColors.primary, fontSize: Dimensions.fontSizeSmall)),
+                        const TextSpan(text: ' and '),
+                        TextSpan(text: 'Terms', style: robotoMedium.copyWith(
+                            color: AppColors.primary, fontSize: Dimensions.fontSizeSmall)),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ],
-                decoration: InputDecoration(
-                  hintText: 'Enter Mobile Number',
-                  hintStyle: robotoRegular.copyWith(color: AppColors.textLight),
-                ),
               ),
-              const SizedBox(height: Dimensions.paddingSizeExtraLarge),
-
-              CustomButton(text: 'Sign In', isLoading: auth.loading, onPressed: _sendOtp),
-              const SizedBox(height: Dimensions.paddingSizeDefault),
-
-              Text.rich(
-                TextSpan(
-                  text: 'By signing up, I accept the ',
-                  style: robotoRegular.copyWith(
-                      color: AppColors.textLight, fontSize: Dimensions.fontSizeSmall),
-                  children: [
-                    TextSpan(text: 'Privacy Policy', style: robotoMedium.copyWith(
-                        color: AppColors.link, fontSize: Dimensions.fontSizeSmall)),
-                    const TextSpan(text: ' and '),
-                    TextSpan(text: 'Terms', style: robotoMedium.copyWith(
-                        color: AppColors.link, fontSize: Dimensions.fontSizeSmall)),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: Dimensions.paddingSizeExtraLarge),
-
-              Text('Or Continue with', style: robotoRegular.copyWith(color: AppColors.textMedium)),
-              const SizedBox(height: Dimensions.paddingSizeDefault),
-              OutlinedButton.icon(
-                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Google sign-in (demo) — use mobile number')),
-                ),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  side: const BorderSide(color: AppColors.border),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
-                ),
-                icon: Text('G', style: robotoBold.copyWith(color: AppColors.link, fontSize: 18)),
-                label: Text('Google Account',
-                    style: robotoSemiBold.copyWith(color: AppColors.textDark)),
-              ),
-            ],
+            ),
           ),
         ),
       ),

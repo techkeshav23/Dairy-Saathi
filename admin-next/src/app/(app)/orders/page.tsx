@@ -1,39 +1,45 @@
-"use client";
-import { useMemo, useState } from "react";
 import { Search, Download, ChevronRight } from "lucide-react";
 import { Card, Pill } from "@/components/ui";
-import { orders } from "@/lib/data";
+import { orders as mockOrders } from "@/lib/data";
+import { getOrders } from "@/lib/supabase-data";
+import { useSupabase } from "@/lib/supabase";
 import { inr } from "@/lib/format";
+import Link from "next/link";
+import Form from "next/form";
 
 const CHIPS = ["All", "Placed", "Confirmed", "Packed", "Dispatched", "Delivered", "Cancelled"];
 
-export default function OrdersPage() {
-  const [chip, setChip] = useState("All");
-  const [q, setQ] = useState("");
+export default async function OrdersPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const searchParams = await props.searchParams;
+  const chip = typeof searchParams.chip === "string" ? searchParams.chip : "All";
+  const q = typeof searchParams.q === "string" ? searchParams.q : "";
 
-  const rows = useMemo(() => {
-    return orders.filter((o) =>
-      (chip === "All" || o.status === chip) &&
-      (q === "" || (o.ref + o.retailer + o.area).toLowerCase().includes(q.toLowerCase()))
-    );
-  }, [chip, q]);
+  const allOrders = useSupabase ? await getOrders() : mockOrders;
+
+  const rows = allOrders.filter((o) =>
+    (chip === "All" || o.status === chip) &&
+    (q === "" || (o.ref + o.retailer + o.area).toLowerCase().includes(q.toLowerCase()))
+  );
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap gap-2">
           {CHIPS.map((c) => (
-            <button key={c} onClick={() => setChip(c)}
+            <Link key={c} href={`/orders?chip=${encodeURIComponent(c)}&q=${encodeURIComponent(q)}`}
               className={`rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition ${
                 chip === c ? "border-brand bg-brand text-white shadow-[0_6px_14px_rgba(226,35,26,.25)]" : "border-border bg-card text-muted hover:text-fg"
-              }`}>{c}</button>
+              }`}>{c}</Link>
           ))}
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3">
+          <Form action="/orders" className="flex items-center gap-2 rounded-lg border border-border bg-card px-3">
+            <input type="hidden" name="chip" value={chip} />
             <Search size={15} className="text-faint" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search orders…" className="w-44 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
-          </div>
+            <input name="q" defaultValue={q} placeholder="Search orders…" className="w-44 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
+          </Form>
           <button className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[13px] font-medium text-fg hover:bg-card2"><Download size={15} />Export</button>
         </div>
       </div>

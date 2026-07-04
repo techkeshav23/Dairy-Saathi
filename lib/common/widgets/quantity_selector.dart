@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 /// SixamMart-style quantity stepper: a white rounded pill with circular
 /// +/- controls (minus on a pale-pink chip, plus filled primary).

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/common/widgets/ananda_top_bar.dart';
-import 'package:saathi/helper/route_helper.dart';
-import 'package:saathi/providers/auth_provider.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/app_constants.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/ananda_top_bar.dart';
+import 'package:my_order_pro/helper/route_helper.dart';
+import 'package:my_order_pro/providers/auth_provider.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/app_constants.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
+import '../../common/widgets/powered_by_codeblimp.dart';
+import 'package:my_order_pro/features/settings/settings_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -38,6 +40,8 @@ class MoreScreen extends StatelessWidget {
                 _sectionHeader('Profile'),
                 const SizedBox(height: Dimensions.paddingSizeSmall),
                 _card([
+                  _row(context, Icons.settings_outlined, 'Settings',
+                      () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()))),
                   _row(context, Icons.manage_accounts_outlined, 'Account and Preferences',
                       () => Navigator.pushNamed(context, RouteHelper.accountPreferences)),
                   _row(context, Icons.help_outline, 'Help', () => _toast(context, 'Help — demo')),
@@ -58,6 +62,9 @@ class MoreScreen extends StatelessWidget {
               ],
             ),
           ),
+        
+          const SizedBox(height: 24),
+          const PoweredByCodeBlimp(),
         ],
       ),
     );

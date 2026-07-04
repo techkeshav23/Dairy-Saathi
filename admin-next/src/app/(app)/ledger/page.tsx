@@ -1,9 +1,12 @@
 import { Download } from "lucide-react";
 import { Card, CardHead, Pill } from "@/components/ui";
-import { ledger, recharges } from "@/lib/data";
+import { ledger as mockLedger, recharges } from "@/lib/data";
+import { getLedger } from "@/lib/supabase-data";
+import { useSupabase } from "@/lib/supabase";
 import { inr, inrFull } from "@/lib/format";
 
-export default function LedgerPage() {
+export default async function LedgerPage() {
+  const ledger = useSupabase ? await getLedger() : mockLedger;
   const debit = ledger.reduce((s, l) => s + l.debit, 0);
   const credit = ledger.reduce((s, l) => s + l.credit, 0);
   const mini = (label: string, val: number, cls: string) => (

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/common/widgets/empty_state.dart';
-import 'package:saathi/common/widgets/loading_shimmer.dart';
-import 'package:saathi/common/widgets/product_list_tile.dart';
-import 'package:saathi/common/widgets/view_cart_bar.dart';
-import 'package:saathi/data/models/product.dart';
-import 'package:saathi/providers/catalog_provider.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/empty_state.dart';
+import 'package:my_order_pro/common/widgets/loading_shimmer.dart';
+import 'package:my_order_pro/common/widgets/product_list_tile.dart';
+import 'package:my_order_pro/common/widgets/view_cart_bar.dart';
+import 'package:my_order_pro/data/models/product.dart';
+import 'package:my_order_pro/providers/catalog_provider.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});

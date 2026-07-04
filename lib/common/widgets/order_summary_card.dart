@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:saathi/helper/price_converter.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/app_constants.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/helper/price_converter.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/app_constants.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 /// Bill breakdown card reused on cart, checkout and order detail.
 class OrderSummaryCard extends StatelessWidget {

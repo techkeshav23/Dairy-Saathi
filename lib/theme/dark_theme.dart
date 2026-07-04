@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
 
 ThemeData darkTheme = ThemeData(
   useMaterial3: true,
@@ -18,7 +18,7 @@ ThemeData darkTheme = ThemeData(
     secondary: AppColors.primary,
     surface: AppColors.darkCard,
     error: AppColors.error,
-    onPrimary: Colors.white,
+    onPrimary: AppColors.textDark,
     onSurface: Colors.white,
   ),
   appBarTheme: const AppBarTheme(

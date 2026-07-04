@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/helper/route_helper.dart';
-import 'package:saathi/providers/auth_provider.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/helper/route_helper.dart';
+import 'package:my_order_pro/providers/auth_provider.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 class AccountPreferencesScreen extends StatelessWidget {
   const AccountPreferencesScreen({super.key});
@@ -14,7 +14,7 @@ class AccountPreferencesScreen extends StatelessWidget {
     final user = context.watch<AuthProvider>().user;
     final address = (user?.address.isNotEmpty ?? false)
         ? user!.address
-        : 'Main Bazaar, Chandpur, Bijnor, Uttar Pradesh, India, 246725';
+        : 'Address not provided';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -47,7 +47,7 @@ class AccountPreferencesScreen extends StatelessWidget {
                               ),
                               child: Center(
                                 child: Text(
-                                  (user?.shopName.isNotEmpty ?? false) ? user!.shopName[0].toUpperCase() : 'D',
+                                  (user?.shopName.isNotEmpty ?? false) ? user!.shopName[0].toUpperCase() : 'S',
                                   style: robotoBold.copyWith(color: AppColors.primary, fontSize: 38),
                                 ),
                               ),
@@ -77,10 +77,10 @@ class AccountPreferencesScreen extends StatelessWidget {
                                 Text('Retailer', style: robotoMedium.copyWith(
                                     color: AppColors.link, fontSize: Dimensions.fontSizeSmall)),
                                 const SizedBox(height: 2),
-                                Text(user?.shopName ?? 'My Kirana Store',
+                                Text((user?.shopName.isNotEmpty ?? false) ? user!.shopName : 'Shop Name not set',
                                     style: robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraLarge)),
                                 const SizedBox(height: 2),
-                                Text('+91 - ${user?.phone ?? "9000000000"}',
+                                Text((user?.phone ?? '').isNotEmpty ? '+91 - ${user!.phone}' : 'Add Phone Number',
                                     style: robotoRegular.copyWith(color: AppColors.textLight, fontSize: Dimensions.fontSizeDefault)),
                               ],
                             ),
@@ -97,7 +97,7 @@ class AccountPreferencesScreen extends StatelessWidget {
                 const Divider(height: 1, color: Color(0xFFECECEC)),
                 _detailRow(Icons.location_on_outlined, 'Address', address, isLink: false),
                 const Divider(height: 1, color: Color(0xFFECECEC)),
-                _detailRow(Icons.my_location_outlined, 'Coordinates', '29.1247315, 78.2773148', isLink: true),
+                _detailRow(Icons.my_location_outlined, 'Coordinates', 'Location not set', isLink: true),
                 const Divider(height: 1, color: Color(0xFFECECEC)),
                 _simpleRow(context, Icons.phonelink_setup_outlined, 'Device Manager'),
                 const Divider(height: 1, color: Color(0xFFECECEC)),

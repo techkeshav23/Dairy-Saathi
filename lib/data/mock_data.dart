@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:saathi/data/models/banner.dart';
-import 'package:saathi/data/models/category.dart';
-import 'package:saathi/data/models/ledger_entry.dart';
-import 'package:saathi/data/models/product.dart';
-import 'package:saathi/util/app_colors.dart';
+import 'package:my_order_pro/data/models/banner.dart';
+import 'package:my_order_pro/data/models/category.dart';
+import 'package:my_order_pro/data/models/ledger_entry.dart';
+import 'package:my_order_pro/data/models/product.dart';
+import 'package:my_order_pro/util/app_colors.dart';
 
 /// Seed catalog for the demo. Structured exactly like the future API response
 /// so swapping MockRepository → ApiRepository is a drop-in change.

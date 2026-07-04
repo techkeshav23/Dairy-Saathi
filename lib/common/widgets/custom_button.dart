@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 /// Primary filled button used across the app. Set [isLoading] to show a spinner,
 /// [outlined] for a secondary variant, [color] to override the fill.
@@ -38,18 +38,22 @@ class CustomButton extends StatelessWidget {
               onPressed: disabled ? null : onPressed,
               style: OutlinedButton.styleFrom(
                 foregroundColor: fill,
-                side: BorderSide(color: fill, width: 1.4),
+                disabledForegroundColor: AppColors.disabledButton,
+                side: BorderSide(
+                  color: disabled ? AppColors.disabledButton : fill,
+                  width: 1.4,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                 ),
               ),
-              child: _child(fill),
+              child: _child(disabled ? AppColors.disabledButton : fill),
             )
           : ElevatedButton(
               onPressed: disabled ? null : onPressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: fill,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.textDark,
                 disabledBackgroundColor: AppColors.disabledButton,
                 disabledForegroundColor: Colors.white,
                 elevation: 0,
@@ -57,7 +61,7 @@ class CustomButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                 ),
               ),
-              child: _child(Colors.white),
+              child: _child(AppColors.textDark),
             ),
     );
   }

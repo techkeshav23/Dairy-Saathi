@@ -1,4 +1,4 @@
-import 'package:saathi/data/models/product.dart';
+import 'package:my_order_pro/data/models/product.dart';
 
 /// A line in the retailer's order cart. Holds the product plus chosen quantity;
 /// per-unit price is derived live from the product's bulk slabs.

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/common/widgets/product_image.dart';
-import 'package:saathi/common/widgets/quantity_selector.dart';
-import 'package:saathi/data/models/product.dart';
-import 'package:saathi/helper/price_converter.dart';
-import 'package:saathi/helper/route_helper.dart';
-import 'package:saathi/providers/cart_provider.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/product_image.dart';
+import 'package:my_order_pro/common/widgets/quantity_selector.dart';
+import 'package:my_order_pro/data/models/product.dart';
+import 'package:my_order_pro/helper/price_converter.dart';
+import 'package:my_order_pro/helper/route_helper.dart';
+import 'package:my_order_pro/providers/cart_provider.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 /// Vertical catalog card for grids and horizontal rails.
 /// Follows the SixamMart grid card: white, radius 15, subtle, with a rectangular
@@ -45,11 +45,14 @@ class ProductCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(Dimensions.radiusLarge)),
-                  child: ProductImage(
-                    url: product.image,
-                    categoryId: product.categoryId,
-                    size: width == double.infinity ? 160 : width,
-                    fit: BoxFit.cover,
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: ProductImage(
+                      url: product.image,
+                      categoryId: product.categoryId,
+                      size: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 if (discount > 0)
@@ -146,6 +149,30 @@ class ProductCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class AddCircleButton extends StatelessWidget {
+  final VoidCallback? onTap;
+  final double size;
+
+  const AddCircleButton({super.key, required this.onTap, this.size = 30});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(size / 2),
+      child: Container(
+        height: size,
+        width: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: onTap != null ? AppColors.primary : Colors.grey,
+        ),
+        child: Icon(Icons.add, color: Colors.white, size: size * 0.6),
       ),
     );
   }

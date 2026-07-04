@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:saathi/common/widgets/app_logo.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/app_logo.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 /// White root-tab top bar: centered brand mark + version, with a dark wallet
 /// chip on the right — exactly the Ananda Home/Report/More header.

@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:saathi/data/mock_data.dart';
+import 'package:my_order_pro/data/mock_data.dart';
 
 /// Renders a product image. Supports bundled assets ("assets/...") and network
 /// URLs (cached). Falls back to a clean, neutral grey tile (never a coloured

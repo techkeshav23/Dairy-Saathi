@@ -1,7 +1,7 @@
 // Basic smoke test for Saathi.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:saathi/common/widgets/app_logo.dart';
+import 'package:my_order_pro/common/widgets/app_logo.dart';
 
 void main() {
   testWidgets('App logo renders wordmark', (WidgetTester tester) async {

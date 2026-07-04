@@ -1,8 +1,9 @@
-import 'package:saathi/data/mock_data.dart';
-import 'package:saathi/data/models/banner.dart';
-import 'package:saathi/data/models/category.dart';
-import 'package:saathi/data/models/ledger_entry.dart';
-import 'package:saathi/data/models/product.dart';
+import 'package:my_order_pro/data/mock_data.dart';
+import 'package:my_order_pro/data/models/banner.dart';
+import 'package:my_order_pro/data/models/category.dart';
+import 'package:my_order_pro/data/models/ledger_entry.dart';
+import 'package:my_order_pro/data/models/order.dart';
+import 'package:my_order_pro/data/models/product.dart';
 
 /// Data access contract. Today backed by [MockRepository]; swap in an
 /// `ApiRepository` (Laravel/REST) later without touching the UI layer.
@@ -14,6 +15,9 @@ abstract class Repository {
   Future<Product?> getProduct(String id);
   Future<List<BannerModel>> getBanners();
   Future<List<LedgerEntry>> getLedger();
+
+  /// The signed-in retailer's own order history (most recent first).
+  Future<List<OrderModel>> getOrders();
 
   /// Simulated send-OTP. Returns the OTP so the demo can auto-fill it.
   Future<String> requestOtp(String phone);
@@ -76,6 +80,13 @@ class MockRepository implements Repository {
   Future<List<LedgerEntry>> getLedger() async {
     await _delay();
     return MockData.ledger(DateTime.now());
+  }
+
+  @override
+  Future<List<OrderModel>> getOrders() async {
+    await _delay();
+    // Mock mode keeps order history in-session only (see OrderProvider).
+    return const [];
   }
 
   @override

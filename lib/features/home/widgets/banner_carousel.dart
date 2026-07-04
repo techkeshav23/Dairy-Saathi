@@ -1,9 +1,9 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:saathi/data/models/banner.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/data/models/banner.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 class BannerCarousel extends StatefulWidget {
   final List<BannerModel> banners;
@@ -93,8 +93,13 @@ class _BannerCarouselState extends State<BannerCarousel> {
                       borderRadius: BorderRadius.circular(Dimensions.radiusMedium),
                       color: AppColors.surface,
                     ),
-                    child: Image.asset(b.image, fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(color: AppColors.surface)),
+                    child: b.image.startsWith('http')
+                        ? Image.network(b.image, fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Container(color: AppColors.surface),
+                            loadingBuilder: (_, child, progress) =>
+                                progress == null ? child : Container(color: AppColors.surface))
+                        : Image.asset(b.image, fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Container(color: AppColors.surface)),
                   ),
                   const SizedBox(width: Dimensions.paddingSizeDefault),
                   Expanded(

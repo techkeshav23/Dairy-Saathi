@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:saathi/data/models/cart_item.dart';
-import 'package:saathi/data/models/ledger_entry.dart';
-import 'package:saathi/data/models/order.dart';
-import 'package:saathi/data/repository.dart';
+import 'package:my_order_pro/data/models/cart_item.dart';
+import 'package:my_order_pro/data/models/ledger_entry.dart';
+import 'package:my_order_pro/data/models/order.dart';
+import 'package:my_order_pro/data/repository.dart';
 
 class OrderProvider extends ChangeNotifier {
   final Repository repository;
@@ -16,6 +16,7 @@ class OrderProvider extends ChangeNotifier {
 
   int _seq = 10232;
   bool _ledgerLoaded = false;
+  bool _ordersLoaded = false;
 
   /// Demo credit line extended to this retailer (Ananda-style "Credit Limit").
   final double creditLimit = 50000;
@@ -31,15 +32,64 @@ class OrderProvider extends ChangeNotifier {
   /// Remaining credit the retailer can still spend on khata.
   double get usableCredit => (creditLimit - outstanding).clamp(0, creditLimit);
 
+  /// Loads the retailer's order history from the backend (once). New orders placed
+  /// in-session via [placeOrder] stay on top; this fills in previously-placed orders.
+  Future<void> loadOrders() async {
+    if (_ordersLoaded) return;
+    try {
+      final server = await repository.getOrders();
+      // keep any in-session orders first, then append server history (de-duped by id)
+      final existingIds = _orders.map((o) => o.id).toSet();
+      _orders.addAll(server.where((o) => !existingIds.contains(o.id)));
+      _ordersLoaded = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading orders: $e');
+    }
+  }
+
+  /// Force a live re-fetch of order history (pull-to-refresh).
+  Future<void> refreshOrders() async {
+    try {
+      final server = await repository.getOrders();
+      final sessionOnly = _orders.where((o) => o.id.startsWith('SA')).toList();
+      _orders
+        ..clear()
+        ..addAll(sessionOnly)
+        ..addAll(server.where((s) => !sessionOnly.any((o) => o.id == s.id)));
+      _ordersLoaded = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error refreshing orders: $e');
+    }
+  }
+
   Future<void> loadLedger() async {
     if (_ledgerLoaded) return;
-    _ledger = await repository.getLedger();
-    _ledgerLoaded = true;
-    notifyListeners();
+    try {
+      _ledger = await repository.getLedger();
+      _ledgerLoaded = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading ledger: $e');
+    }
+  }
+
+  /// Force a live re-fetch of the ledger from the backend (pull-to-refresh),
+  /// so entries posted server-side (e.g. by place_order) show up immediately.
+  Future<void> refreshLedger() async {
+    try {
+      _ledger = await repository.getLedger();
+      _ledgerLoaded = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error refreshing ledger: $e');
+    }
   }
 
   /// Builds an order from the current cart lines and prepends it to history.
   OrderModel placeOrder({
+    String? id,
     required List<CartItem> cartItems,
     required double subtotal,
     required double gst,
@@ -50,7 +100,7 @@ class OrderProvider extends ChangeNotifier {
     required String address,
   }) {
     final order = OrderModel(
-      id: 'SA${_seq++}',
+      id: id ?? 'SA${_seq++}',
       placedAt: DateTime.now(),
       lines: cartItems
           .map((i) => OrderLine(

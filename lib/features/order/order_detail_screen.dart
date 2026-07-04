@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:saathi/common/widgets/order_summary_card.dart';
-import 'package:saathi/common/widgets/product_image.dart';
-import 'package:saathi/data/models/order.dart';
-import 'package:saathi/helper/price_converter.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/order_summary_card.dart';
+import 'package:my_order_pro/common/widgets/product_image.dart';
+import 'package:my_order_pro/data/models/order.dart';
+import 'package:my_order_pro/helper/pdf_invoice_helper.dart';
+import 'package:my_order_pro/helper/price_converter.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 class OrderDetailScreen extends StatelessWidget {
   final OrderModel order;
@@ -27,6 +28,32 @@ class OrderDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Order #${order.id}', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share),
+            tooltip: 'Share Bill',
+            onPressed: () async {
+              await PdfInvoiceHelper.shareInvoice(
+                docTitle: 'TAX INVOICE',
+                invoiceNo: order.id.toString(),
+                date: order.placedAt,
+                partyName: 'Customer',
+                partyAddress: order.address,
+                items: order.lines.map((line) => {
+                  'name': line.name,
+                  'hsn': '',
+                  'qty': line.quantity,
+                  'rate': line.unitPrice,
+                  'amount': line.total,
+                }).toList(),
+                subtotal: order.subtotal.toDouble(),
+                cgst: 0,
+                sgst: 0,
+                total: order.total.toDouble(),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),

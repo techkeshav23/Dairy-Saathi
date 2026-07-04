@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:saathi/data/models/cart_item.dart';
-import 'package:saathi/data/models/product.dart';
-import 'package:saathi/util/app_constants.dart';
+import 'package:my_order_pro/data/models/cart_item.dart';
+import 'package:my_order_pro/data/models/product.dart';
+import 'package:my_order_pro/util/app_constants.dart';
 
 class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];
@@ -69,10 +69,11 @@ class CartProvider extends ChangeNotifier {
   void setQuantity(String productId, int qty) {
     final item = _find(productId);
     if (item == null) return;
-    if (qty < item.product.moq) {
+    
+    if (qty <= 0) {
       _items.remove(item);
     } else {
-      item.quantity = qty;
+      item.quantity = qty < item.product.moq ? item.product.moq : qty;
     }
     notifyListeners();
   }

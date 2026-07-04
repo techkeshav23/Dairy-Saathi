@@ -8,11 +8,11 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // ---- Brand red ----
-  static const Color primary = Color(0xFFE2231A);
-  static const Color primaryDark = Color(0xFFC2121C);
-  static const Color secondary = Color(0xFFF0455A);
-  static const Color primaryLight = Color(0xFFFDEFEF); // blush / strip bg
+  // ---- Brand yellow (golden marigold) ----
+  static const Color primary = Color(0xFFF2A900);
+  static const Color primaryDark = Color(0xFFD98E00);
+  static const Color secondary = Color(0xFFFFC845);
+  static const Color primaryLight = Color(0xFFFFF4DA); // pale yellow / strip bg
 
   static const Color accent = primary;
   static const Color accentLight = primaryLight;
@@ -55,7 +55,7 @@ class AppColors {
   static const Color darkBorder = Color(0xFF313440);
 
   // ---- Gradients ----
-  static const List<Color> heroGradient = [Color(0xFFE2231A), Color(0xFFC2121C)];
-  static const List<Color> offersGradient = [Color(0xFFF0455A), Color(0xFFE2231A)];
+  static const List<Color> heroGradient = [Color(0xFFF2A900), Color(0xFFD98E00)];
+  static const List<Color> offersGradient = [Color(0xFFFFC845), Color(0xFFF2A900)];
   static const List<Color> primaryGradient = [primary, primaryDark];
 }

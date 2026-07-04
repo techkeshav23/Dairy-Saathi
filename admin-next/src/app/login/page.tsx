@@ -80,6 +80,7 @@ export default function LoginPage() {
           <p className="mt-4 text-center text-[12px] text-zinc-400">Demo login &middot; no real authentication</p>
         </form>
       </div>
-    </div>
+    <p className="mt-8 text-center text-xs text-slate-500">Powered by <a href="https://codeblimp.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-700 hover:underline">CodeBlimp</a></p>
+      </div>
   );
 }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/common/widgets/app_logo.dart';
-import 'package:saathi/helper/route_helper.dart';
-import 'package:saathi/providers/auth_provider.dart';
-import 'package:saathi/util/app_constants.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/app_logo.dart';
+import 'package:my_order_pro/data/supabase_config.dart';
+import 'package:my_order_pro/helper/route_helper.dart';
+import 'package:my_order_pro/providers/auth_provider.dart';
+import 'package:my_order_pro/util/app_constants.dart';
+import 'package:my_order_pro/util/styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -31,7 +33,13 @@ class _SplashScreenState extends State<SplashScreen> {
     final onboardSeen = prefs.getBool(AppConstants.onboardSeen) ?? false;
     if (!mounted) return;
 
-    if (auth.isLoggedIn) {
+    Session? session;
+    if (SupabaseConfig.useSupabase) {
+      session = Supabase.instance.client.auth.currentSession;
+    }
+
+    if (auth.isLoggedIn && (!SupabaseConfig.useSupabase || session != null)) {
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, RouteHelper.dashboard);
     } else if (!onboardSeen) {
       Navigator.pushReplacementNamed(context, RouteHelper.onboarding);

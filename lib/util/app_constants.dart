@@ -2,8 +2,8 @@
 class AppConstants {
   AppConstants._();
 
-  static const String appName = 'DAIRY DEMO';
-  static const String appTagline = 'Aapka Wholesale Partner';
+  static const String appName = 'MY ORDER PRO';
+  static const String appTagline = 'Wholesale ordering, simplified.';
   static const String appVersion = '1.0.0';
 
   // Currency

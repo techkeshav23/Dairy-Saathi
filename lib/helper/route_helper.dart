@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:saathi/data/models/category.dart';
-import 'package:saathi/data/models/order.dart';
-import 'package:saathi/data/models/product.dart';
-import 'package:saathi/features/auth/sign_in_screen.dart';
-import 'package:saathi/features/auth/verify_otp_screen.dart';
-import 'package:saathi/features/cart/cart_screen.dart';
-import 'package:saathi/features/category/category_products_screen.dart';
-import 'package:saathi/features/category/place_order_screen.dart';
-import 'package:saathi/features/checkout/checkout_screen.dart';
-import 'package:saathi/features/checkout/order_success_screen.dart';
-import 'package:saathi/features/dashboard/dashboard_screen.dart';
-import 'package:saathi/features/item/product_detail_screen.dart';
-import 'package:saathi/features/ledger/ledger_screen.dart';
-import 'package:saathi/features/ledger/manual_recharge_screen.dart';
-import 'package:saathi/features/ledger/statement_screen.dart';
-import 'package:saathi/features/ledger/wallet_screen.dart';
-import 'package:saathi/features/onboard/onboarding_screen.dart';
-import 'package:saathi/features/order/all_orders_screen.dart';
-import 'package:saathi/features/order/order_detail_screen.dart';
-import 'package:saathi/features/profile/account_preferences_screen.dart';
-import 'package:saathi/features/profile/profile_screen.dart';
-import 'package:saathi/features/search/search_screen.dart';
-import 'package:saathi/features/splash/splash_screen.dart';
+import 'package:my_order_pro/data/models/category.dart';
+import 'package:my_order_pro/data/models/order.dart';
+import 'package:my_order_pro/data/models/product.dart';
+import 'package:my_order_pro/features/auth/sign_in_screen.dart';
+import 'package:my_order_pro/features/auth/verify_otp_screen.dart';
+import 'package:my_order_pro/features/cart/cart_screen.dart';
+import 'package:my_order_pro/features/category/category_products_screen.dart';
+import 'package:my_order_pro/features/category/place_order_screen.dart';
+import 'package:my_order_pro/features/checkout/checkout_screen.dart';
+import 'package:my_order_pro/features/checkout/order_success_screen.dart';
+import 'package:my_order_pro/features/dashboard/dashboard_screen.dart';
+import 'package:my_order_pro/features/item/product_detail_screen.dart';
+import 'package:my_order_pro/features/ledger/ledger_screen.dart';
+import 'package:my_order_pro/features/ledger/manual_recharge_screen.dart';
+import 'package:my_order_pro/features/ledger/statement_screen.dart';
+import 'package:my_order_pro/features/ledger/wallet_screen.dart';
+import 'package:my_order_pro/features/onboard/onboarding_screen.dart';
+import 'package:my_order_pro/features/order/all_orders_screen.dart';
+import 'package:my_order_pro/features/order/order_detail_screen.dart';
+import 'package:my_order_pro/features/profile/account_preferences_screen.dart';
+import 'package:my_order_pro/features/profile/profile_screen.dart';
+import 'package:my_order_pro/features/search/search_screen.dart';
+import 'package:my_order_pro/features/splash/splash_screen.dart';
 
 /// Central route registry.
 class RouteHelper {
@@ -47,6 +47,14 @@ class RouteHelper {
   static const String ledger = '/ledger';
   static const String accountPreferences = '/account-preferences';
   static const String profile = '/profile';
+  
+  // Transaction & Drawer screens
+  static const String sale = '/sale';
+  static const String purchase = '/purchase';
+  static const String expense = '/expense';
+  static const String cashBank = '/cash-bank';
+  static const String paymentIn = '/payment-in';
+  static const String paymentOut = '/payment-out';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     Widget page;
@@ -110,6 +118,24 @@ class RouteHelper {
         break;
       case profile:
         page = const ProfileScreen();
+        break;
+      case sale:
+        page = const Scaffold(body: Center(child: Text('Sale')));
+        break;
+      case purchase:
+        page = const Scaffold(body: Center(child: Text('Purchase')));
+        break;
+      case expense:
+        page = const Scaffold(body: Center(child: Text('Expense')));
+        break;
+      case cashBank:
+        page = const Scaffold(body: Center(child: Text('CashBank')));
+        break;
+      case paymentIn:
+        page = const Scaffold(body: Center(child: Text('PaymentIn')));
+        break;
+      case paymentOut:
+        page = const Scaffold(body: Center(child: Text('PaymentOut')));
         break;
       default:
         page = const Scaffold(body: Center(child: Text('Page not found')));

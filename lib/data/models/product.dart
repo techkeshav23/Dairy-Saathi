@@ -55,9 +55,8 @@ class Product {
     this.description = '',
   });
 
-  /// Bundled catalog photo for this product (real Pexels image shipped as an
-  /// asset, so it always loads). [imageUrl] is kept for a future remote API.
-  String get image => 'assets/images/products/$id.jpg';
+  /// The remote image URL for this product. Falls back to a placeholder if empty.
+  String get image => imageUrl.isNotEmpty ? imageUrl : 'https://your-fallback-image-url.com/placeholder.png';
 
   bool get inStock => stock > 0;
 
@@ -88,21 +87,28 @@ class Product {
     return ((mrp - basePrice) / mrp) * 100;
   }
 
-  factory Product.fromJson(Map<String, dynamic> json) => Product(
-        id: json['id'].toString(),
-        name: json['name'] ?? '',
-        brand: json['brand'] ?? '',
-        categoryId: json['category_id'].toString(),
-        imageUrl: json['image'] ?? '',
-        unit: json['unit'] ?? '',
-        mrp: double.tryParse('${json['mrp']}') ?? 0,
-        slabs: (json['slabs'] as List? ?? [])
-            .map((e) => PriceSlab.fromJson(e))
-            .toList(),
-        moq: int.tryParse('${json['moq']}') ?? 1,
-        stock: int.tryParse('${json['stock']}') ?? 0,
-        isPopular: json['is_popular'] == true,
-        isFeatured: json['is_featured'] == true,
-        description: json['description'] ?? '',
-      );
+  factory Product.fromJson(Map<String, dynamic> json) {
+    final parsedSlabs = (json['slabs'] as List? ?? [])
+        .map((e) => PriceSlab.fromJson(e))
+        .toList();
+    
+    // Sort slabs ascending by minQty so basePrice, bestPrice, and priceForQty work correctly
+    parsedSlabs.sort((a, b) => a.minQty.compareTo(b.minQty));
+
+    return Product(
+      id: json['id'].toString(),
+      name: json['name'] ?? '',
+      brand: json['brand'] ?? '',
+      categoryId: json['category_id'].toString(),
+      imageUrl: json['image_url'] ?? json['image'] ?? '',
+      unit: json['unit'] ?? '',
+      mrp: double.tryParse('${json['mrp']}') ?? 0,
+      slabs: parsedSlabs,
+      moq: int.tryParse('${json['moq']}') ?? 1,
+      stock: int.tryParse('${json['stock']}') ?? 0,
+      isPopular: json['is_popular'] == true,
+      isFeatured: json['is_featured'] == true,
+      description: json['description'] ?? '',
+    );
+  }
 }

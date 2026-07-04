@@ -1,11 +1,11 @@
 {
-    "name": "saathi",
-    "short_name": "saathi",
+    "name": "MY ORDER PRO",
+    "short_name": "MY ORDER PRO",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "B2B wholesale ordering — daily restock for kirana retailers.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

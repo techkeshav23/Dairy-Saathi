@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/common/widgets/custom_button.dart';
-import 'package:saathi/helper/price_converter.dart';
-import 'package:saathi/providers/order_provider.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/custom_button.dart';
+import 'package:my_order_pro/helper/price_converter.dart';
+import 'package:my_order_pro/providers/order_provider.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});

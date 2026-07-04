@@ -1,17 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/common/widgets/empty_state.dart';
-import 'package:saathi/data/models/order.dart';
-import 'package:saathi/helper/price_converter.dart';
-import 'package:saathi/helper/route_helper.dart';
-import 'package:saathi/providers/order_provider.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/empty_state.dart';
+import 'package:my_order_pro/data/models/order.dart';
+import 'package:my_order_pro/helper/price_converter.dart';
+import 'package:my_order_pro/helper/route_helper.dart';
+import 'package:my_order_pro/providers/order_provider.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
-class AllOrdersScreen extends StatelessWidget {
+class AllOrdersScreen extends StatefulWidget {
   const AllOrdersScreen({super.key});
+
+  @override
+  State<AllOrdersScreen> createState() => _AllOrdersScreenState();
+}
+
+class _AllOrdersScreenState extends State<AllOrdersScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<OrderProvider>().loadOrders();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import 'package:saathi/util/app_constants.dart';
+import 'package:my_order_pro/util/app_constants.dart';
 
 /// Formats money in Indian numbering (lakhs/crores) with the ₹ symbol.
 class PriceConverter {

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/common/widgets/custom_button.dart';
-import 'package:saathi/common/widgets/empty_state.dart';
-import 'package:saathi/common/widgets/order_summary_card.dart';
-import 'package:saathi/common/widgets/product_image.dart';
-import 'package:saathi/common/widgets/quantity_selector.dart';
-import 'package:saathi/data/models/cart_item.dart';
-import 'package:saathi/helper/price_converter.dart';
-import 'package:saathi/helper/route_helper.dart';
-import 'package:saathi/providers/cart_provider.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/app_constants.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/custom_button.dart';
+import 'package:my_order_pro/common/widgets/empty_state.dart';
+import 'package:my_order_pro/common/widgets/order_summary_card.dart';
+import 'package:my_order_pro/common/widgets/product_image.dart';
+import 'package:my_order_pro/common/widgets/quantity_selector.dart';
+import 'package:my_order_pro/data/models/cart_item.dart';
+import 'package:my_order_pro/helper/price_converter.dart';
+import 'package:my_order_pro/helper/route_helper.dart';
+import 'package:my_order_pro/providers/cart_provider.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/app_constants.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -109,7 +109,7 @@ class _DeliveryProgress extends StatelessWidget {
   Widget build(BuildContext context) {
     final threshold = AppConstants.freeDeliveryThreshold;
     final remaining = threshold - subtotal;
-    final progress = (subtotal / threshold).clamp(0.0, 1.0);
+    final progress = threshold > 0 ? (subtotal / threshold).clamp(0.0, 1.0) : 1.0;
     final unlocked = remaining <= 0;
 
     return Container(

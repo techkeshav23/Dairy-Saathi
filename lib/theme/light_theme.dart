@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
 
 ThemeData lightTheme = ThemeData(
   useMaterial3: true,
@@ -20,7 +20,7 @@ ThemeData lightTheme = ThemeData(
     secondary: AppColors.primary,
     surface: AppColors.card,
     error: AppColors.error,
-    onPrimary: Colors.white,
+    onPrimary: AppColors.textDark,
     onSurface: AppColors.textDark,
   ),
   // White app bar with black centered title + back arrow (Ananda v1.67 style).
@@ -61,7 +61,7 @@ ThemeData lightTheme = ThemeData(
   floatingActionButtonTheme: FloatingActionButtonThemeData(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(500)),
     backgroundColor: AppColors.primary,
-    foregroundColor: Colors.white,
+    foregroundColor: AppColors.textDark,
   ),
   // Clean underline fields (Ananda sign-in style).
   inputDecorationTheme: const InputDecorationTheme(

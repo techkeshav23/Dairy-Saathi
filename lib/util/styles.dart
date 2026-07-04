@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:saathi/util/dimensions.dart';
+import 'package:my_order_pro/util/dimensions.dart';
 
 /// Shared text styles. Uses the default platform font (Roboto on Android) with
 /// explicit weights — no runtime font download, so it works fully offline.

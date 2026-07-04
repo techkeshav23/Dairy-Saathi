@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:saathi/util/dimensions.dart';
+import 'package:my_order_pro/util/dimensions.dart';
 import 'package:shimmer/shimmer.dart';
 
 class _Box extends StatelessWidget {

@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/common/widgets/ananda_top_bar.dart';
-import 'package:saathi/common/widgets/balance_strip.dart';
-import 'package:saathi/features/home/widgets/banner_carousel.dart';
-import 'package:saathi/helper/price_converter.dart';
-import 'package:saathi/helper/route_helper.dart';
-import 'package:saathi/providers/auth_provider.dart';
-import 'package:saathi/providers/catalog_provider.dart';
-import 'package:saathi/providers/order_provider.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:my_order_pro/common/widgets/ananda_top_bar.dart';
+import 'package:my_order_pro/common/widgets/balance_strip.dart';
+import 'package:my_order_pro/features/home/widgets/banner_carousel.dart';
+import 'package:my_order_pro/helper/price_converter.dart';
+import 'package:my_order_pro/helper/route_helper.dart';
+import 'package:my_order_pro/providers/auth_provider.dart';
+import 'package:my_order_pro/providers/catalog_provider.dart';
+import 'package:my_order_pro/providers/order_provider.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,6 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final catalog = context.watch<CatalogProvider>();
+    final isCatalogLoading = catalog.isLoading;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
@@ -50,10 +53,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     const _DistributorCard(),
                     const SizedBox(height: Dimensions.paddingSizeDefault),
-                    if (catalog.banners.isNotEmpty) ...[
+                    
+                    if (isCatalogLoading) ...[
+                      const _CatalogShimmer(),
+                      const SizedBox(height: Dimensions.paddingSizeDefault),
+                    ] else if (catalog.banners.isNotEmpty) ...[
                       BannerCarousel(banners: catalog.banners),
                       const SizedBox(height: Dimensions.paddingSizeDefault),
                     ],
+                    
                     const _QuickAccessCard(),
                     const SizedBox(height: Dimensions.paddingSizeDefault),
                     const _PendingApprovalCard(),
@@ -116,10 +124,17 @@ class _DistributorCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => Navigator.pushNamed(context, RouteHelper.statement),
-                  child: Text('Sync Bal', style: robotoBold.copyWith(
-                      color: AppColors.link, fontSize: Dimensions.fontSizeDefault)),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.pushNamed(context, RouteHelper.statement),
+                    borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Text('Sync Bal', style: robotoBold.copyWith(
+                          color: AppColors.link, fontSize: Dimensions.fontSizeDefault)),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -215,59 +230,79 @@ class _PendingApprovalCard extends StatelessWidget {
                 child: const Icon(Icons.hourglass_bottom_rounded, color: Color(0xFFE8862E), size: 16),
               ),
               const SizedBox(width: 8),
-              Text('Pending Approval', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
+              Text('Pending Approvals', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
             ],
           ),
           const SizedBox(height: Dimensions.paddingSizeDefault),
-          _row(context, Icons.storefront_outlined, 'New Retailers', '0',
-              const Color(0xFFE8862E), const Color(0xFFFCEFE3)),
-          const SizedBox(height: Dimensions.paddingSizeSmall),
-          _row(context, Icons.assignment_turned_in_outlined, 'POD Acceptance', '21',
-              AppColors.success, AppColors.tintGreen),
+          Text('No pending approvals at the moment.', style: robotoRegular.copyWith(color: AppColors.textLight)),
         ],
-      ),
-    );
-  }
-
-  Widget _row(BuildContext context, IconData icon, String label, String count, Color color, Color bg) {
-    return InkWell(
-      onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$label — demo'))),
-      borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-      child: Container(
-        padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
-        child: Row(
-          children: [
-            Container(
-              width: 38, height: 38,
-              decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(width: Dimensions.paddingSizeSmall),
-            Expanded(child: Text(label, style: robotoBold.copyWith(
-                color: color, fontSize: Dimensions.fontSizeDefault))),
-            Container(
-              width: 26, height: 26, alignment: Alignment.center,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              child: Text(count, style: robotoBold.copyWith(color: Colors.white, fontSize: Dimensions.fontSizeSmall)),
-            ),
-            const SizedBox(width: 6),
-            Icon(Icons.chevron_right, color: color, size: 20),
-          ],
-        ),
       ),
     );
   }
 }
 
-Widget _whiteCard({required Widget child}) => Builder(
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))],
-        ),
-        child: child,
+class _CatalogShimmer extends StatelessWidget {
+  const _CatalogShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 140,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+            ),
+          ),
+          const SizedBox(height: Dimensions.paddingSizeDefault),
+          Container(
+            height: 24,
+            width: 150,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+            ),
+          ),
+          const SizedBox(height: Dimensions.paddingSizeDefault),
+          Row(
+            children: List.generate(3, (index) => Expanded(
+              child: Container(
+                height: 120,
+                margin: EdgeInsets.only(right: index < 2 ? Dimensions.paddingSizeSmall : 0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+                ),
+              ),
+            )),
+          ),
+        ],
       ),
     );
+  }
+}
+
+Widget _whiteCard({required Widget child}) {
+  return Container(
+    padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+      border: Border.all(color: AppColors.border),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 3),
+        )
+      ],
+    ),
+    child: child,
+  );
+}

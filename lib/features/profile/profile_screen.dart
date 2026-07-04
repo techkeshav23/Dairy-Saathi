@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saathi/common/widgets/custom_button.dart';
-import 'package:saathi/common/widgets/custom_text_field.dart';
-import 'package:saathi/data/models/user.dart';
-import 'package:saathi/providers/auth_provider.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/common/widgets/custom_button.dart';
+import 'package:my_order_pro/common/widgets/custom_text_field.dart';
+import 'package:my_order_pro/data/models/user.dart';
+import 'package:my_order_pro/providers/auth_provider.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:saathi/util/app_colors.dart';
-import 'package:saathi/util/dimensions.dart';
-import 'package:saathi/util/styles.dart';
+import 'package:my_order_pro/util/app_colors.dart';
+import 'package:my_order_pro/util/dimensions.dart';
+import 'package:my_order_pro/util/styles.dart';
 
 class BalanceCellData {
   final String label;
@@ -41,7 +41,9 @@ class BalanceStrip extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 4),
                   decoration: BoxDecoration(
                     color: active ? AppColors.primary : Colors.transparent,
-                    border: i == 0 ? null : const Border(left: BorderSide(color: divider)),
+                    border: (i == 0 || active || i == activeIndex + 1)
+                        ? null
+                        : const Border(left: BorderSide(color: divider)),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
