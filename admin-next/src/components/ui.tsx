@@ -2,41 +2,54 @@ import { ReactNode } from "react";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl border bg-card shadow-[0_1px_2px_rgba(16,24,40,.04),0_8px_24px_rgba(16,24,40,.05)] ${className}`}>
+    <div className={`rounded-xl border border-border bg-card elev-1 ${className}`}>
       {children}
     </div>
   );
 }
 
-export function CardHead({ title, action }: { title: string; action?: ReactNode }) {
+export function CardHead({ title, sub, action }: { title: string; sub?: string; action?: ReactNode }) {
   return (
-    <div className="flex items-center justify-between px-5 pt-5 pb-3">
-      <h3 className="text-[15px] font-semibold tracking-tight">{title}</h3>
+    <div className="flex items-start justify-between gap-4 border-b border-border2 px-5 py-4">
+      <div>
+        <h3 className="text-[14.5px] font-semibold tracking-tight text-fg">{title}</h3>
+        {sub && <p className="mt-0.5 text-[12px] text-faint">{sub}</p>}
+      </div>
       {action}
     </div>
   );
 }
 
 type Tone = "ok" | "info" | "warn" | "bad" | "muted";
+
 const toneClass: Record<Tone, string> = {
   ok: "bg-success-soft text-success",
   info: "bg-info-soft text-info",
   warn: "bg-warning-soft text-warning",
-  bad: "bg-brand-soft text-brand",
-  muted: "bg-card2 text-muted border border-border",
+  bad: "bg-danger-soft text-danger",
+  muted: "border border-border bg-card2 text-muted",
+};
+
+const dotClass: Record<Tone, string> = {
+  ok: "bg-success",
+  info: "bg-info",
+  warn: "bg-warning",
+  bad: "bg-danger",
+  muted: "bg-faint",
 };
 
 export function statusTone(s: string): Tone {
-  if (["Delivered", "Approved", "Verified", "In Stock", "Filed"].includes(s)) return "ok";
-  if (["Dispatched", "Confirmed", "Online"].includes(s)) return "info";
+  if (["Delivered", "Approved", "Verified", "In Stock", "Filed", "Paid", "Online"].includes(s)) return "ok";
+  if (["Dispatched", "Confirmed"].includes(s)) return "info";
   if (["Packed", "Placed", "Pending", "Low", "Khata"].includes(s)) return "warn";
-  if (["Cancelled", "Rejected", "Out of Stock"].includes(s)) return "bad";
+  if (["Cancelled", "Rejected", "Out of Stock", "COD"].includes(s)) return "bad";
   return "muted";
 }
 
-export function Badge({ children, tone = "muted" }: { children: ReactNode; tone?: Tone }) {
+export function Badge({ children, tone = "muted", dot = true }: { children: ReactNode; tone?: Tone; dot?: boolean }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none ${toneClass[tone]}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-[3px] text-[11px] font-medium leading-none ${toneClass[tone]}`}>
+      {dot && <span className={`h-1.5 w-1.5 rounded-full ${dotClass[tone]}`} />}
       {children}
     </span>
   );

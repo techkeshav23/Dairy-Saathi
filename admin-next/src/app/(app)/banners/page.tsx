@@ -11,7 +11,7 @@ export default function BannersPage() {
     <div className="space-y-4">
       <div className="flex items-center">
         <h2 className="text-base font-semibold">Promotional Banners</h2>
-        <button className="ml-auto flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(226,35,26,.25)]"><Plus size={16} />Add Banner</button>
+        <button className="ml-auto flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,.12)]"><Plus size={16} />Add Banner</button>
       </div>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((b, i) => (

@@ -38,7 +38,7 @@ export default function SettingsPage() {
               <input defaultValue={val} className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
             </label>
           ))}
-          <button className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(226,35,26,.25)]">Save Changes</button>
+          <button className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,.12)]">Save Changes</button>
         </div>
       </Card>
       <Card>

@@ -15,10 +15,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="grid min-h-screen bg-white lg:grid-cols-2">
-      {/* Cover */}
-      <div className="relative hidden overflow-hidden lg:block">
-        <Image src="/login-cover.jpg" alt="" fill priority className="object-cover" />
+    <div className="flex min-h-screen bg-white">
+      {/* Cover - full-height left side */}
+      <div className="relative hidden w-1/2 overflow-hidden lg:block">
+        <Image src="/login-cover.jpg" alt="" fill priority sizes="50vw" className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-900/45 to-zinc-900/25" />
         <div className="relative z-10 flex h-full flex-col justify-between p-12 text-white">
           <div className="flex items-center gap-3">
@@ -41,28 +41,27 @@ export default function LoginPage() {
               ))}
             </div>
           </div>
-          <span className="text-[12px] text-white/60">Powered by DIAL ERP &middot; v1.0 (demo)</span>
         </div>
       </div>
 
       {/* Form - fixed white regardless of theme */}
-      <div className="flex items-center justify-center bg-white p-6">
+      <div className="flex w-full flex-col items-center justify-center bg-white p-6 lg:w-1/2">
         <form onSubmit={submit} className="w-full max-w-sm">
-          <div className="mb-1 text-[12px] font-semibold uppercase tracking-widest text-red-600">Welcome back</div>
+          <div className="mb-1 text-[12px] font-semibold uppercase tracking-widest text-brand">Welcome back</div>
           <h2 className="text-2xl font-bold tracking-tight text-zinc-900">Sign in to Admin</h2>
           <p className="mt-1 text-sm text-zinc-500">Use any credentials - this is a demo console.</p>
 
           <div className="mt-7 space-y-4">
             <label className="block">
               <span className="mb-1.5 block text-[12px] font-medium text-zinc-500">Email</span>
-              <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 focus-within:border-red-500 focus-within:ring-2 focus-within:ring-red-100">
+              <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand-soft">
                 <Mail size={16} className="text-zinc-400" />
                 <input defaultValue="admin@dairydemo.in" className="w-full bg-transparent py-2.5 text-sm text-zinc-900 outline-none" />
               </div>
             </label>
             <label className="block">
               <span className="mb-1.5 block text-[12px] font-medium text-zinc-500">Password</span>
-              <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 focus-within:border-red-500 focus-within:ring-2 focus-within:ring-red-100">
+              <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand-soft">
                 <Lock size={16} className="text-zinc-400" />
                 <input type="password" defaultValue="demo1234" className="w-full bg-transparent py-2.5 text-sm text-zinc-900 outline-none" />
               </div>
@@ -70,17 +69,17 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-3 flex items-center justify-between text-[13px]">
-            <label className="flex items-center gap-2 text-zinc-500"><input type="checkbox" defaultChecked className="accent-red-600" /> Remember me</label>
-            <a className="font-medium text-red-600">Forgot password?</a>
+            <label className="flex items-center gap-2 text-zinc-500"><input type="checkbox" defaultChecked className="accent-brand" /> Remember me</label>
+            <a className="font-medium text-brand">Forgot password?</a>
           </div>
 
-          <button disabled={loading} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 py-3 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(226,35,26,.28)] transition hover:bg-red-700 disabled:opacity-70">
+          <button disabled={loading} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-3 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.22)] transition hover:opacity-95 disabled:opacity-70">
             {loading ? "Signing in..." : <>Sign In to Console <ArrowRight size={16} /></>}
           </button>
           <p className="mt-4 text-center text-[12px] text-zinc-400">Demo login &middot; no real authentication</p>
         </form>
+        <p className="mt-8 text-center text-xs text-slate-500">Powered by <a href="https://codeblimp.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-700 hover:underline">CodeBlimp</a></p>
       </div>
-    <p className="mt-8 text-center text-xs text-slate-500">Powered by <a href="https://codeblimp.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-700 hover:underline">CodeBlimp</a></p>
-      </div>
+    </div>
   );
 }

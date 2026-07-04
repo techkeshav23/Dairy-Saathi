@@ -6,8 +6,8 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "DAIRY DEMO Â· Admin Console",
-  description: "Distribution admin console for DAIRY DEMO",
+  title: "DAIRY DEMO — Distribution Console",
+  description: "B2B distribution admin console — orders, inventory, retailers, khata and reports.",
 };
 
 const themeInit = `(function(){try{document.documentElement.classList.remove('dark');localStorage.removeItem('dd-theme');}catch(e){}})();`;

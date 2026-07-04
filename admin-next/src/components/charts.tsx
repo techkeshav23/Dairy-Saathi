@@ -9,10 +9,10 @@ import { inr } from "@/lib/format";
 const tip = {
   background: "var(--card)",
   border: "1px solid var(--border)",
-  borderRadius: 12,
+  borderRadius: 8,
   fontSize: 12,
   color: "var(--fg)",
-  boxShadow: "0 10px 30px rgba(16,24,40,.12)",
+  boxShadow: "0 8px 24px rgba(15,23,42,.10)",
 };
 
 export function SalesArea() {

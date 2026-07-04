@@ -1,26 +1,45 @@
 @import "tailwindcss";
 
-/* Light-only design system for DAIRY DEMO admin (no OS dark override). */
+/* ------------------------------------------------------------------
+   DIAL — Distribution admin console. Refined enterprise design system.
+   Cool graphite neutrals, one restrained cobalt accent, a dark sidebar,
+   hairline borders and flat surfaces with minimal elevation. Built to
+   read as a serious MNC-grade B2B console, not a demo.
+------------------------------------------------------------------ */
 :root {
-  --bg: #f6f7f9;
+  /* surfaces */
+  --bg: #f4f5f7;
   --card: #ffffff;
-  --card2: #fbfcfd;
-  --border: #e8eaee;
-  --border2: #eef0f3;
-  --fg: #14161d;
-  --muted: #5b6270;
-  --faint: #99a0ac;
-  --brand: #e2231a;
+  --card2: #f7f8fa;      /* hover / inset rows */
+  --border: #e5e7ec;     /* hairline */
+  --border2: #eef0f3;    /* faint divider */
+
+  /* text */
+  --fg: #0e1320;         /* ink */
+  --muted: #586172;
+  --faint: #97a0b0;
+
+  /* accent (brand) — restrained cobalt, used sparingly */
+  --brand: #2b50d6;
   --brand-fg: #ffffff;
-  --brand-soft: #fdecea;
-  --success: #16a34a;
-  --success-soft: #e7f6ec;
-  --warning: #d97706;
-  --warning-soft: #fbf0e1;
-  --info: #2563eb;
-  --info-soft: #e8eefc;
-  --danger: #dc2626;
-  --sidebar: #ffffff;
+  --brand-soft: #eaeefc;
+
+  /* dark sidebar */
+  --sidebar: #0f1320;
+  --sidebar-fg: #c5cbd8;
+  --sidebar-muted: #7a8395;
+  --sidebar-hover: #191f30;
+  --sidebar-active: #202840;
+
+  /* semantic — muted, enterprise */
+  --success: #0f9d63;
+  --success-soft: #e6f6ee;
+  --warning: #c07708;
+  --warning-soft: #faf0dc;
+  --info: #2b6cf0;
+  --info-soft: #e9f0fe;
+  --danger: #dc4249;
+  --danger-soft: #fceaea;
 }
 
 @theme inline {
@@ -35,6 +54,11 @@
   --color-brand: var(--brand);
   --color-brand-fg: var(--brand-fg);
   --color-brand-soft: var(--brand-soft);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-fg: var(--sidebar-fg);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-active: var(--sidebar-active);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
@@ -42,10 +66,10 @@
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --color-danger: var(--danger);
-  --color-sidebar: var(--sidebar);
+  --color-danger-soft: var(--danger-soft);
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
-  --radius-xl: 14px;
+  --radius-xl: 12px;
 }
 
 * { border-color: var(--border); }
@@ -54,14 +78,26 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
+  letter-spacing: -0.006em;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+
+/* tabular figures for all data */
 .tnum { font-variant-numeric: tabular-nums; }
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; border: 3px solid var(--bg); }
+
+/* refined scrollbar */
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-thumb { background: #d2d6de; border-radius: 10px; border: 3px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: #c0c5cf; }
 ::selection { background: var(--brand); color: #fff; }
 
-@keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.fade-up { animation: fade-up .45s cubic-bezier(.2,.7,.2,1) both; }
+/* subtle, quick — no bouncy demo motion */
+@keyframes fade-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+.fade-up { animation: fade-in .28s ease both; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; }
+
+/* shared elevation tokens */
+.elev-1 { box-shadow: 0 1px 2px rgba(15,23,42,.04); }
+.elev-2 { box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 24px rgba(15,23,42,.05); }

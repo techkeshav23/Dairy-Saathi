@@ -31,7 +31,7 @@ export default async function RetailersPage({
             className="w-48 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint"
           />
         </Form>
-        <button className="ml-auto flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(226,35,26,.25)]">
+        <button className="ml-auto flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,.12)]">
           <Plus size={16} />
           Add Retailer
         </button>

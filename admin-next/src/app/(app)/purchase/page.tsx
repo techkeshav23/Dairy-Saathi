@@ -129,7 +129,7 @@ export default function PurchasePage() {
             </div>
             <div className="flex gap-3 px-5 py-4">
               <button onClick={() => { setParsed(null); setFileName(""); }} className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold">Discard</button>
-              <button onClick={commit} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(226,35,26,.25)]"><Check size={16} />Add {parsed.items.length} items to Inventory</button>
+              <button onClick={commit} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,.12)]"><Check size={16} />Add {parsed.items.length} items to Inventory</button>
             </div>
           </Card>
         </>

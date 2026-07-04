@@ -29,7 +29,7 @@ export default function ProductsPage() {
           <Search size={15} className="text-faint" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" className="w-48 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
         </div>
-        <button onClick={() => setOpen(true)} className="ml-auto flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(226,35,26,.25)]"><Plus size={16} />Add Product</button>
+        <button onClick={() => setOpen(true)} className="ml-auto flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,.12)]"><Plus size={16} />Add Product</button>
       </div>
 
       <Card className="overflow-hidden">

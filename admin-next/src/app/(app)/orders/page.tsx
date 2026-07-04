@@ -30,7 +30,7 @@ export default async function OrdersPage(props: {
           {CHIPS.map((c) => (
             <Link key={c} href={`/orders?chip=${encodeURIComponent(c)}&q=${encodeURIComponent(q)}`}
               className={`rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition ${
-                chip === c ? "border-brand bg-brand text-white shadow-[0_6px_14px_rgba(226,35,26,.25)]" : "border-border bg-card text-muted hover:text-fg"
+                chip === c ? "border-brand bg-brand text-white shadow-[0_6px_14px_rgba(15,23,42,.12)]" : "border-border bg-card text-muted hover:text-fg"
               }`}>{c}</Link>
           ))}
         </div>
