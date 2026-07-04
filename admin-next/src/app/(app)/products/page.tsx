@@ -1,25 +1,27 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, Plus, X, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Search, Plus, X, Pencil, Trash2, Loader2, Image as ImageIcon } from "lucide-react";
 import { Card, Pill } from "@/components/ui";
 import { products as mockProducts, stockStatus } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { inr } from "@/lib/format";
 
-type P = { id: string; name: string; cat: string; mrp: number; rate: number; resale: number; moq: number; stock: number; pack: string };
+type P = { id: string; name: string; cat: string; mrp: number; rate: number; resale: number; moq: number; stock: number; pack: string; image: string };
 
 const TINTS = [["#eef2fe", "#2b50d6"], ["#faf0dc", "#c07708"], ["#e6f6ee", "#0f9d63"], ["#f1f3f7", "#586172"]];
-const BLANK: P = { id: "", name: "", cat: "", mrp: 0, rate: 0, resale: 0, moq: 1, stock: 0, pack: "1 EA" };
+const BLANK: P = { id: "", name: "", cat: "", mrp: 0, rate: 0, resale: 0, moq: 1, stock: 0, pack: "1 EA", image: "" };
 const FALLBACK_CATS = ["Groceries & Staples", "Beverages", "Snacks & Namkeen", "Personal Care", "Home Care", "Dairy & Bakery", "Packaged Food", "Stationery"];
 
 export default function ProductsPage() {
   const [q, setQ] = useState("");
+  const [catFilter, setCatFilter] = useState("All");
   const [list, setList] = useState<P[]>([]);
   const [cats, setCats] = useState<string[]>(FALLBACK_CATS);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<P | null>(null);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [broken, setBroken] = useState<Record<string, boolean>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -27,9 +29,9 @@ export default function ProductsPage() {
       const res = await fetch("/api/products", { cache: "no-store" });
       const data = await res.json();
       if (Array.isArray(data) && data.length) setList(data);
-      else setList(mockProducts.map((p, i) => ({ ...p, id: "mock_" + i })));
+      else setList(mockProducts.map((p, i) => ({ ...p, id: "mock_" + i, image: "" })));
     } catch {
-      setList(mockProducts.map((p, i) => ({ ...p, id: "mock_" + i })));
+      setList(mockProducts.map((p, i) => ({ ...p, id: "mock_" + i, image: "" })));
     }
     setLoading(false);
   }, []);
@@ -44,7 +46,10 @@ export default function ProductsPage() {
     }
   }, [load]);
 
-  const rows = useMemo(() => list.filter((p) => (p.name + p.cat).toLowerCase().includes(q.toLowerCase())), [q, list]);
+  const rows = useMemo(() => list.filter((p) =>
+    (catFilter === "All" || p.cat === catFilter) &&
+    (p.name + p.cat).toLowerCase().includes(q.toLowerCase())
+  ), [q, list, catFilter]);
 
   const openNew = () => { setErr(""); setModal({ ...BLANK, cat: cats[0] || "" }); };
 
@@ -80,8 +85,12 @@ export default function ProductsPage() {
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3">
           <Search size={15} className="text-faint" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" className="w-48 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" className="w-44 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
         </div>
+        <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-[13px] font-medium text-fg outline-none focus:border-brand">
+          <option value="All">All categories</option>
+          {cats.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
         <span className="text-[12px] text-faint">{rows.length} items</span>
         <button onClick={openNew} className="ml-auto flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95"><Plus size={16} />Add Product</button>
       </div>
@@ -108,7 +117,12 @@ export default function ProductsPage() {
                     <tr key={p.id} className="group border-b border-border2 last:border-0 hover:bg-card2">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          <span className="grid h-9 w-9 place-items-center rounded-lg text-[13px] font-bold" style={{ background: t[0], color: t[1] }}>{p.name[0]}</span>
+                          {p.image && !broken[p.id] ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={p.image} alt="" onError={() => setBroken((b) => ({ ...b, [p.id]: true }))} className="h-9 w-9 rounded-lg border border-border object-cover" />
+                          ) : (
+                            <span className="grid h-9 w-9 place-items-center rounded-lg text-[13px] font-bold" style={{ background: t[0], color: t[1] }}>{p.name[0]}</span>
+                          )}
                           <div><div className="font-semibold">{p.name}</div><div className="text-[11px] text-faint">{p.pack}</div></div>
                         </div>
                       </td>
@@ -155,6 +169,17 @@ export default function ProductsPage() {
                   {cats.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </label>
+              <div className="col-span-2 flex items-end gap-3">
+                <label className="block flex-1">
+                  <span className="mb-1 flex items-center gap-1.5 text-[12px] font-medium text-muted"><ImageIcon size={13} /> Image URL <span className="text-faint">(optional)</span></span>
+                  <input value={modal.image} onChange={(e) => setModal({ ...modal, image: e.target.value })} placeholder="https://…/product.jpg"
+                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
+                </label>
+                {modal.image
+                  ? // eslint-disable-next-line @next/next/no-img-element
+                    <img src={modal.image} alt="" className="h-10 w-10 shrink-0 rounded-lg border border-border object-cover" />
+                  : <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-dashed border-border text-faint"><ImageIcon size={16} /></div>}
+              </div>
               {(["mrp", "rate", "resale", "moq", "stock", "pack"] as (keyof P)[]).map((key) => (
                 <label key={key} className="block">
                   <span className="mb-1 block text-[12px] font-medium capitalize text-muted">{key === "pack" ? "Pack" : key}</span>

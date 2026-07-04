@@ -9,16 +9,22 @@ const BLANK: Banner = { id: "", title: "", sub: "", tag: "OFFER", color: "#2b50d
 const TAGS = ["OFFER", "STOCK AVAILABLE", "KHATA", "NEW", "COMBO", "SALE"];
 
 function BannerArt({ image, color, children }: { image: string; color: string; children: React.ReactNode }) {
+  const hasColor = !!color && color.trim() !== "";
   return (
     <div className="relative flex min-h-[130px] flex-col justify-center overflow-hidden p-5 text-white">
       {image ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${color}f2 0%, ${color}b3 55%, ${color}66 100%)` }} />
+          {hasColor ? (
+            <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${color}f2 0%, ${color}b3 55%, ${color}66 100%)` }} />
+          ) : (
+            /* image only — subtle dark scrim so overlaid text stays legible */
+            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+          )}
         </>
       ) : (
-        <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)` }} />
+        <div className="absolute inset-0" style={{ background: hasColor ? `linear-gradient(135deg, ${color}, ${color}cc)` : "linear-gradient(135deg,#334155,#0f172a)" }} />
       )}
       <div className="relative z-10">{children}</div>
     </div>
@@ -39,7 +45,7 @@ export default function BannersPage() {
       const data = await res.json();
       if (Array.isArray(data) && data.length) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setItems(data.map((b: any) => ({ id: b.id, title: b.title || "", sub: b.subtitle || "", tag: b.tag || "", color: b.accent_hex || "#2b50d6", image: b.image || b.image_url || "", active: true })));
+        setItems(data.map((b: any) => ({ id: b.id, title: b.title || "", sub: b.subtitle || "", tag: b.tag || "", color: b.accent_hex ?? "#2b50d6", image: b.image || b.image_url || "", active: true })));
       } else {
         setItems(seed.map((b, i) => ({ ...b, id: "seed_" + i, image: "" })));
       }
@@ -54,7 +60,7 @@ export default function BannersPage() {
   const toggle = (id: string) => setItems((p) => p.map((b) => (b.id === id ? { ...b, active: !b.active } : b)));
 
   const save = async () => {
-    if (!modal || !modal.title.trim()) { setErr("Title is required"); return; }
+    if (!modal || (!modal.title.trim() && !modal.image.trim())) { setErr("Add a title or an image"); return; }
     setSaving(true); setErr("");
     const isEdit = !!modal.id && !modal.id.startsWith("seed_");
     try {
@@ -157,22 +163,36 @@ export default function BannersPage() {
                 <input value={modal.image} onChange={(e) => setModal({ ...modal, image: e.target.value })} placeholder="https://…/banner.jpg"
                   className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
               </label>
-              <div className="grid grid-cols-2 gap-4">
+              <label className="block">
+                <span className="mb-1 block text-[12px] font-medium text-muted">Tag</span>
+                <select value={modal.tag} onChange={(e) => setModal({ ...modal, tag: e.target.value })}
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand">
+                  <option value="">No tag</option>
+                  {TAGS.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </label>
+
+              {/* Colour overlay toggle — off = raw image only */}
+              <div className="flex items-center justify-between rounded-lg border border-border bg-card2 px-3 py-2.5">
+                <div>
+                  <div className="text-[12.5px] font-medium text-fg">Colour overlay</div>
+                  <div className="text-[11px] text-faint">Turn off to show only the image (no colour tint)</div>
+                </div>
+                <button type="button" aria-label="Toggle colour overlay" onClick={() => setModal({ ...modal, color: modal.color ? "" : "#2b50d6" })}
+                  className={`relative h-5 w-9 shrink-0 rounded-full transition ${modal.color ? "bg-brand" : "bg-border"}`}>
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${modal.color ? "left-[18px]" : "left-0.5"}`} />
+                </button>
+              </div>
+
+              {modal.color && (
                 <label className="block">
-                  <span className="mb-1 block text-[12px] font-medium text-muted">Tag</span>
-                  <select value={modal.tag} onChange={(e) => setModal({ ...modal, tag: e.target.value })}
-                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand">
-                    {TAGS.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[12px] font-medium text-muted">Colour</span>
+                  <span className="mb-1 block text-[12px] font-medium text-muted">Overlay colour</span>
                   <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5">
                     <input type="color" value={modal.color} onChange={(e) => setModal({ ...modal, color: e.target.value })} className="h-7 w-9 cursor-pointer rounded border-0 bg-transparent p-0" />
                     <input value={modal.color} onChange={(e) => setModal({ ...modal, color: e.target.value })} className="w-full bg-transparent text-[13px] text-fg outline-none" />
                   </div>
                 </label>
-              </div>
+              )}
               {err && <p className="text-[12px] font-medium text-danger">{err}</p>}
             </div>
 
