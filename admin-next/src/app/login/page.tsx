@@ -2,16 +2,25 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, Lock, Mail } from "lucide-react";
+import { ArrowRight, Lock, Mail, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase-browser";
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [err, setErr] = useState("");
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setTimeout(() => router.push("/dashboard"), 500);
+    if (!email.trim() || !password) { setErr("Enter your email and password"); return; }
+    setLoading(true); setErr("");
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (error) { setErr(error.message); setLoading(false); return; }
+    router.push("/dashboard");
+    router.refresh();
   };
 
   return (
@@ -44,7 +53,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Form - fixed white regardless of theme */}
+      {/* Form */}
       <div className="flex w-full flex-col items-center justify-center bg-white p-6 lg:w-1/2">
         <form onSubmit={submit} className="w-full max-w-sm">
           <div className="mb-1 text-[12px] font-semibold uppercase tracking-widest text-brand">Welcome back</div>
@@ -56,17 +65,21 @@ export default function LoginPage() {
               <span className="mb-1.5 block text-[12px] font-medium text-zinc-500">Email</span>
               <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand-soft">
                 <Mail size={16} className="text-zinc-400" />
-                <input defaultValue="admin@myorderpro.in" className="w-full bg-transparent py-2.5 text-sm text-zinc-900 outline-none" />
+                <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@admin.com"
+                  className="w-full bg-transparent py-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-300" />
               </div>
             </label>
             <label className="block">
               <span className="mb-1.5 block text-[12px] font-medium text-zinc-500">Password</span>
               <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand-soft">
                 <Lock size={16} className="text-zinc-400" />
-                <input type="password" defaultValue="" placeholder="••••••••" className="w-full bg-transparent py-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-300" />
+                <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••"
+                  className="w-full bg-transparent py-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-300" />
               </div>
             </label>
           </div>
+
+          {err && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-[13px] font-medium text-red-600">{err}</p>}
 
           <div className="mt-3 flex items-center justify-between text-[13px]">
             <label className="flex items-center gap-2 text-zinc-500"><input type="checkbox" defaultChecked className="accent-brand" /> Remember me</label>
@@ -74,7 +87,7 @@ export default function LoginPage() {
           </div>
 
           <button disabled={loading} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-3 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.22)] transition hover:opacity-95 disabled:opacity-70">
-            {loading ? "Signing in..." : <>Sign In to Console <ArrowRight size={16} /></>}
+            {loading ? <><Loader2 size={16} className="spin" /> Signing in…</> : <>Sign In to Console <ArrowRight size={16} /></>}
           </button>
         </form>
         <p className="mt-8 text-center text-xs text-slate-500">Powered by <a href="https://codeblimp.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-700 hover:underline">CodeBlimp</a></p>

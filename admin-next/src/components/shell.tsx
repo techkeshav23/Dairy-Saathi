@@ -1,8 +1,9 @@
 "use client";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase-browser";
 import {
   LayoutDashboard, ShoppingCart, Package, Tags, Truck, Store, BookOpen,
   BarChart3, Image as ImageIcon, Settings, Search, Bell, Menu, X, LogOut, ChevronRight,
@@ -49,6 +50,21 @@ export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
+  }, []);
+
+  const signOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
+
+  const initials = email ? email.slice(0, 2).toUpperCase() : "MO";
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[248px_1fr]">
@@ -105,7 +121,7 @@ export function Shell({ children }: { children: ReactNode }) {
           {/* Footer */}
           <div className="border-t border-white/[0.06] p-3">
             <button
-              onClick={() => router.push("/login")}
+              onClick={signOut}
               className="flex w-full items-center gap-3 rounded-[8px] px-3 py-2 text-[13px] font-medium text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-white"
             >
               <LogOut size={17} /> Sign out
@@ -140,9 +156,9 @@ export function Shell({ children }: { children: ReactNode }) {
             </button>
             <div className="mx-0.5 hidden h-6 w-px bg-border sm:block" />
             <div className="flex items-center gap-2.5">
-              <div className="grid h-9 w-9 place-items-center rounded-full bg-fg text-[11px] font-semibold tracking-wide text-white">MO</div>
+              <div className="grid h-9 w-9 place-items-center rounded-full bg-fg text-[11px] font-semibold tracking-wide text-white">{initials}</div>
               <div className="hidden leading-tight sm:block">
-                <div className="text-[13px] font-semibold text-fg">MY ORDER PRO</div>
+                <div className="max-w-[150px] truncate text-[13px] font-semibold text-fg">{email || "MY ORDER PRO"}</div>
                 <div className="text-[11px] text-faint">Administrator</div>
               </div>
             </div>
