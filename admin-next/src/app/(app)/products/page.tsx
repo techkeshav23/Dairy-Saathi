@@ -1,25 +1,45 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, Plus, X } from "lucide-react";
 import { Card, Pill } from "@/components/ui";
-import { products, stockStatus, type Product } from "@/lib/data";
+import { products as mockProducts, stockStatus, type Product } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
 import { inr } from "@/lib/format";
 
-const TINTS = [["#fdecea", "#e2231a"], ["#fbf0e1", "#d97706"], ["#e7f6ec", "#16a34a"], ["#e8eefc", "#2563eb"]];
+const TINTS = [["#eef2fe", "#2b50d6"], ["#faf0dc", "#c07708"], ["#e6f6ee", "#0f9d63"], ["#f1f3f7", "#586172"]];
 
 export default function ProductsPage() {
   const [q, setQ] = useState("");
-  const [ver, setVer] = useState(0);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<Product>({ name: "", cat: "Milk", mrp: 0, rate: 0, resale: 0, moq: 1, stock: 0, pack: "1 EA" });
+  const [list, setList] = useState<Product[]>(mockProducts);
+  const [form, setForm] = useState<Product>({ name: "", cat: "Groceries", mrp: 0, rate: 0, resale: 0, moq: 1, stock: 0, pack: "1 EA" });
 
-  const rows = useMemo(() => products.filter((p) => (p.name + p.cat).toLowerCase().includes(q.toLowerCase())), [q, ver]);
+  // Live catalog (products are public / anon-readable). Falls back to mock on error.
+  useEffect(() => {
+    if (!supabase) return;
+    supabase
+      .from("products")
+      .select("name, unit, mrp, moq, stock, categories(name), price_slabs(price_per_unit)")
+      .then(({ data, error }) => {
+        if (error || !data || data.length === 0) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setList((data as any[]).map((p) => {
+          const cat = Array.isArray(p.categories) ? p.categories[0]?.name : p.categories?.name;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const prices = (p.price_slabs ?? []).map((s: any) => Number(s.price_per_unit)).filter((n: number) => n > 0);
+          const rate = prices.length ? Math.min(...prices) : Number(p.mrp);
+          return { name: p.name || "", cat: cat || "Uncategorized", mrp: Number(p.mrp) || 0, rate: rate || 0, resale: Number(p.mrp) || 0, moq: p.moq || 1, stock: p.stock || 0, pack: p.unit || "1 unit" };
+        }));
+      });
+  }, []);
+
+  const rows = useMemo(() => list.filter((p) => (p.name + p.cat).toLowerCase().includes(q.toLowerCase())), [q, list]);
 
   const save = () => {
     if (!form.name.trim()) return;
-    products.unshift({ ...form });
-    setOpen(false); setVer((v) => v + 1);
-    setForm({ name: "", cat: "Milk", mrp: 0, rate: 0, resale: 0, moq: 1, stock: 0, pack: "1 EA" });
+    setList((prev) => [{ ...form }, ...prev]);
+    setOpen(false);
+    setForm({ name: "", cat: "Groceries", mrp: 0, rate: 0, resale: 0, moq: 1, stock: 0, pack: "1 EA" });
   };
 
   return (

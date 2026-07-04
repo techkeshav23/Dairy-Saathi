@@ -1,11 +1,31 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Pencil, Eye } from "lucide-react";
 import { banners as seed } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
 
 export default function BannersPage() {
   const [items, setItems] = useState(seed.map((b) => ({ ...b })));
   const toggle = (i: number) => setItems((p) => p.map((b, idx) => (idx === i ? { ...b, active: !b.active } : b)));
+
+  // Live banners (public / anon-readable). Falls back to seed on error.
+  useEffect(() => {
+    if (!supabase) return;
+    supabase
+      .from("banners")
+      .select("title, subtitle, tag, accent_hex")
+      .then(({ data, error }) => {
+        if (error || !data || data.length === 0) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setItems((data as any[]).map((b) => ({
+          title: b.title || "",
+          sub: b.subtitle || "",
+          tag: b.tag || "",
+          active: true,
+          color: b.accent_hex || "#2b50d6",
+        })));
+      });
+  }, []);
 
   return (
     <div className="space-y-4">
