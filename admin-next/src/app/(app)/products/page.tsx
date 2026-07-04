@@ -78,6 +78,20 @@ export default function ProductsPage() {
     await load();
   };
 
+  // Create a new category inline (from the product modal) and select it.
+  const addCategoryInline = async () => {
+    const name = window.prompt("New category name:");
+    if (!name || !name.trim()) return;
+    try {
+      const res = await fetch("/api/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: name.trim() }) });
+      const j = await res.json();
+      if (res.ok && j.name) {
+        setCats((prev) => (prev.includes(j.name) ? prev : [...prev, j.name].sort()));
+        setModal((m) => (m ? { ...m, cat: j.name } : m));
+      }
+    } catch { /* ignore */ }
+  };
+
   const NUM: (keyof P)[] = ["mrp", "rate", "resale", "moq", "stock"];
 
   return (
@@ -164,9 +178,10 @@ export default function ProductsPage() {
               </label>
               <label className="col-span-2 block">
                 <span className="mb-1 block text-[12px] font-medium text-muted">Category</span>
-                <select value={modal.cat} onChange={(e) => setModal({ ...modal, cat: e.target.value })}
+                <select value={modal.cat} onChange={(e) => { if (e.target.value === "__new__") addCategoryInline(); else setModal({ ...modal, cat: e.target.value }); }}
                   className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand">
                   {cats.map((c) => <option key={c} value={c}>{c}</option>)}
+                  <option value="__new__">+ New category…</option>
                 </select>
               </label>
               <div className="col-span-2 flex items-end gap-3">

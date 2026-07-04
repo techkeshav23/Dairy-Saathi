@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, ShoppingCart, Package, Truck, Store, BookOpen,
+  LayoutDashboard, ShoppingCart, Package, Tags, Truck, Store, BookOpen,
   BarChart3, Image as ImageIcon, Settings, Search, Bell, Menu, X, LogOut, ChevronRight,
 } from "lucide-react";
 
@@ -18,6 +18,7 @@ const SECTIONS = [
     items: [
       { href: "/orders", label: "Orders", icon: ShoppingCart },
       { href: "/products", label: "Products", icon: Package },
+      { href: "/categories", label: "Categories", icon: Tags },
       { href: "/purchase", label: "Purchase / Stock-In", icon: Truck },
       { href: "/retailers", label: "Retailers", icon: Store },
     ],
