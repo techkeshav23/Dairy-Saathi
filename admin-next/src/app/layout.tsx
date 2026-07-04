@@ -6,7 +6,7 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "DAIRY DEMO — Distribution Console",
+  title: "MY ORDER PRO — Distribution Console",
   description: "B2B distribution admin console — orders, inventory, retailers, khata and reports.",
 };
 

@@ -101,5 +101,5 @@ export async function extractBill(file: File): Promise<Parsed> {
   } catch { /* fall through */ }
   const items = demoItems();
   items.forEach((it) => (it.match = matchProduct(it.name)));
-  return { meta: { supplier: "Dairy India Pvt Ltd", billNo: "PUR-" + (1000 + (Date.now() % 9000)), date: todayStr() }, items, demo: true };
+  return { meta: { supplier: "Aggarwal Distributors", billNo: "PUR-" + (1000 + (Date.now() % 9000)), date: todayStr() }, items, demo: true };
 }

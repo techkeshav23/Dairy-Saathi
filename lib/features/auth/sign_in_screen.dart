@@ -60,12 +60,7 @@ class _SignInScreenState extends State<SignInScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(
-                    'assets/brand/logo.png',
-                    width: 260,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) => const AppLogo(size: 84, showWordmark: true),
-                  ),
+                  const AppLogo(size: 92, showWordmark: true),
                   const SizedBox(height: 28),
                   Text('Welcome Back', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge)),
                   const SizedBox(height: 8),

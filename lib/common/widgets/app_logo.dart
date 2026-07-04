@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:my_order_pro/util/app_colors.dart';
 import 'package:my_order_pro/util/styles.dart';
 
-/// MY ORDER PRO brand mark — the app icon (assets/brand/app_icon.png) with an
+/// MY ORDER PRO brand mark — the official logo (assets/brand/logo.jpeg) with an
 /// optional wordmark. Falls back to a simple painted mark if the asset is missing.
 class AppLogo extends StatelessWidget {
   final double size;
@@ -14,7 +14,7 @@ class AppLogo extends StatelessWidget {
     final mark = ClipRRect(
       borderRadius: BorderRadius.circular(size * 0.24),
       child: Image.asset(
-        'assets/brand/app_icon.png',
+        'assets/brand/logo.jpeg',
         width: size,
         height: size,
         fit: BoxFit.cover,

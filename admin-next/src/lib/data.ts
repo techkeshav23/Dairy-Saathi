@@ -1,4 +1,4 @@
-/* DAIRY DEMO — admin demo data (in-memory; swap for a real API later). */
+/* MY ORDER PRO — admin fallback data (in-memory; swap for a real API later). */
 
 export type Status =
   | "Delivered" | "Dispatched" | "Packed" | "Confirmed" | "Placed" | "Cancelled";
@@ -38,30 +38,30 @@ export const salesTrend = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb
 }));
 
 export const categorySplit = [
-  { name: "Milk", value: 38, color: "#e2231a" },
-  { name: "Curd / Dahi", value: 24, color: "#f5a623" },
-  { name: "Paneer", value: 16, color: "#16a34a" },
-  { name: "Ghee & Butter", value: 14, color: "#2563eb" },
-  { name: "Beverages", value: 8, color: "#7c3aed" },
+  { name: "Groceries & Staples", value: 34, color: "#2b50d6" },
+  { name: "Beverages", value: 22, color: "#0f9d63" },
+  { name: "Snacks & Namkeen", value: 18, color: "#c07708" },
+  { name: "Personal Care", value: 14, color: "#586172" },
+  { name: "Home Care", value: 12, color: "#2b6cf0" },
 ];
 
 export const topProducts = [
-  { name: "Cow Milk Value Pack 320ml", qty: 4820, revenue: 2294320 },
-  { name: "Standard Milk 500ml", qty: 3110, revenue: 2204990 },
-  { name: "Ananda Dahi Cup 400g", qty: 2680, revenue: 911200 },
-  { name: "Pure Ghee 1L Tin", qty: 940, revenue: 1664000 },
-  { name: "Fresh Paneer 1kg", qty: 1210, revenue: 423500 },
+  { name: "India Gate Basmati Rice", qty: 4820, revenue: 2294320 },
+  { name: "Aashirvaad Atta 10kg", qty: 3110, revenue: 1204990 },
+  { name: "Fortune Sunflower Oil 1L", qty: 2680, revenue: 911200 },
+  { name: "Tata Tea Premium 1kg", qty: 940, revenue: 664000 },
+  { name: "Lay's Classic Salted", qty: 1210, revenue: 423500 },
 ];
 
 const retailerNames: [string, string, string][] = [
-  ["Royal Dairy", "Mohd Janish", "Chandpur"],
+  ["Royal Provision Store", "Mohd Janish", "Chandpur"],
   ["Sharma General Store", "Rakesh Sharma", "Bijnor"],
   ["Gupta Kirana", "Sunil Gupta", "Najibabad"],
   ["New Bharat Provision", "Imran Khan", "Dhampur"],
   ["Annapurna Stores", "Meena Devi", "Nagina"],
   ["Verma Trading Co.", "Anil Verma", "Bijnor"],
   ["Shree Balaji Mart", "Praveen Kumar", "Kiratpur"],
-  ["Krishna Dairy Point", "Gopal Yadav", "Chandpur"],
+  ["Krishna Kirana Store", "Gopal Yadav", "Chandpur"],
   ["Maa Vaishno Store", "Deepak Saini", "Haldaur"],
   ["City Super Bazaar", "Faisal Ali", "Bijnor"],
 ];
@@ -84,20 +84,20 @@ export const orders: Order[] = Array.from({ length: 24 }).map((_, i) => {
 });
 
 export const products: Product[] = [
-  { name: "Cow Milk Value Pack 320ml", cat: "Milk", mrp: 560, rate: 476, resale: 504, moq: 2, stock: 420, pack: "1 CRT = 28 EA" },
-  { name: "Ananda Yo Kids Milk 380ml", cat: "Milk", mrp: 560, rate: 476, resale: 504, moq: 2, stock: 210, pack: "1 CRT = 28 EA" },
-  { name: "Cow Milk Junior Pack 220ml", cat: "Milk", mrp: 400, rate: 320, resale: 340, moq: 2, stock: 36, pack: "1 CRT = 40 EA" },
-  { name: "Standard Milk 500ml", cat: "Milk", mrp: 858, rate: 709, resale: 722, moq: 1, stock: 180, pack: "1 CRT = 20 EA" },
-  { name: "Toned Milk 1L Pouch", cat: "Milk", mrp: 660, rate: 560, resale: 600, moq: 4, stock: 0, pack: "1 CRT = 12 EA" },
-  { name: "Ananda Dahi Cup 400g", cat: "Curd / Dahi", mrp: 480, rate: 360, resale: 408, moq: 2, stock: 96, pack: "1 CRT = 24 EA" },
-  { name: "Dahi Matka 1kg", cat: "Curd / Dahi", mrp: 1100, rate: 880, resale: 980, moq: 1, stock: 54, pack: "1 CRT = 8 EA" },
-  { name: "Chaach 200ml", cat: "Beverages", mrp: 240, rate: 180, resale: 204, moq: 5, stock: 320, pack: "1 CRT = 30 EA" },
-  { name: "Lassi 200ml", cat: "Beverages", mrp: 360, rate: 280, resale: 312, moq: 5, stock: 22, pack: "1 CRT = 30 EA" },
-  { name: "Fresh Paneer 1kg", cat: "Paneer", mrp: 420, rate: 350, resale: 380, moq: 2, stock: 140, pack: "1 EA" },
-  { name: "Malai Paneer 200g", cat: "Paneer", mrp: 96, rate: 78, resale: 86, moq: 10, stock: 410, pack: "1 CRT = 40 EA" },
-  { name: "Pure Ghee 1L Tin", cat: "Ghee & Butter", mrp: 1850, rate: 1620, resale: 1720, moq: 2, stock: 88, pack: "1 CTN = 12 EA" },
-  { name: "Table Butter 500g", cat: "Ghee & Butter", mrp: 305, rate: 256, resale: 280, moq: 4, stock: 12, pack: "1 CRT = 20 EA" },
-  { name: "Skimmed Milk Powder 1kg", cat: "Milk", mrp: 480, rate: 410, resale: 445, moq: 2, stock: 64, pack: "1 EA" },
+  { name: "India Gate Basmati Rice 5kg", cat: "Groceries & Staples", mrp: 2200, rate: 1720, resale: 1980, moq: 2, stock: 140, pack: "1 BAG" },
+  { name: "Aashirvaad Atta 10kg", cat: "Groceries & Staples", mrp: 520, rate: 410, resale: 470, moq: 4, stock: 210, pack: "1 BAG" },
+  { name: "Fortune Sunflower Oil 1L", cat: "Groceries & Staples", mrp: 190, rate: 150, resale: 172, moq: 6, stock: 0, pack: "1 CRT = 12 EA" },
+  { name: "Tata Salt 1kg", cat: "Groceries & Staples", mrp: 28, rate: 22, resale: 25, moq: 24, stock: 480, pack: "1 CRT = 24 EA" },
+  { name: "Tata Tea Premium 1kg", cat: "Beverages", mrp: 540, rate: 440, resale: 495, moq: 4, stock: 70, pack: "1 CTN = 10 EA" },
+  { name: "Coca-Cola 750ml", cat: "Beverages", mrp: 40, rate: 31, resale: 36, moq: 12, stock: 320, pack: "1 CRT = 24 EA" },
+  { name: "Lay's Classic Salted", cat: "Snacks & Namkeen", mrp: 20, rate: 15, resale: 18, moq: 20, stock: 150, pack: "1 CRT = 48 EA" },
+  { name: "Haldiram Aloo Bhujia 400g", cat: "Snacks & Namkeen", mrp: 95, rate: 76, resale: 86, moq: 10, stock: 22, pack: "1 CRT = 24 EA" },
+  { name: "Parle-G Biscuits 800g", cat: "Packaged Food", mrp: 80, rate: 64, resale: 72, moq: 12, stock: 410, pack: "1 CRT = 24 EA" },
+  { name: "Maggi Noodles 12-pack", cat: "Packaged Food", mrp: 168, rate: 138, resale: 155, moq: 6, stock: 96, pack: "1 CTN = 8 EA" },
+  { name: "Colgate MaxFresh 150g", cat: "Personal Care", mrp: 99, rate: 78, resale: 90, moq: 12, stock: 88, pack: "1 CRT = 36 EA" },
+  { name: "Lifebuoy Soap 4x125g", cat: "Personal Care", mrp: 108, rate: 86, resale: 98, moq: 8, stock: 12, pack: "1 CRT = 24 EA" },
+  { name: "Surf Excel 1kg", cat: "Home Care", mrp: 140, rate: 112, resale: 128, moq: 6, stock: 64, pack: "1 CRT = 16 EA" },
+  { name: "Amul Butter 500g", cat: "Dairy & Bakery", mrp: 290, rate: 250, resale: 272, moq: 4, stock: 54, pack: "1 CRT = 20 EA" },
 ];
 
 export const retailers: Retailer[] = retailerNames.map((r, i) => ({
@@ -119,7 +119,7 @@ export const ledger: LedgerRow[] = orders.slice(0, 14).flatMap((o, i) => {
 export const recharges: Recharge[] = [
   { date: "21-Jun-2026", retailer: "Verma Trading Co.", amount: 50000, mode: "NEFT", status: "Pending" },
   { date: "20-Jun-2026", retailer: "City Super Bazaar", amount: 100000, mode: "UPI", status: "Pending" },
-  { date: "19-Jun-2026", retailer: "Royal Dairy", amount: 15000, mode: "Cash", status: "Approved" },
+  { date: "19-Jun-2026", retailer: "Royal Provision Store", amount: 15000, mode: "Cash", status: "Approved" },
   { date: "18-Jun-2026", retailer: "Gupta Kirana", amount: 25000, mode: "UPI", status: "Declined" },
 ];
 
@@ -130,7 +130,7 @@ export const banners: Banner[] = [
 ];
 
 export const purchases: Purchase[] = [
-  { date: "21-Jun-2026", supplier: "Dairy India Pvt Ltd", billNo: "2606-PUR-8841", items: 9, amount: 342850, file: "invoice_8841.pdf" },
+  { date: "21-Jun-2026", supplier: "Aggarwal Distributors", billNo: "2606-PUR-8841", items: 9, amount: 342850, file: "invoice_8841.pdf" },
   { date: "18-Jun-2026", supplier: "Ananda Foods Depot", billNo: "2606-PUR-8790", items: 6, amount: 184220, file: "depot_jun18.pdf" },
   { date: "14-Jun-2026", supplier: "Bijnor Cold Storage", billNo: "2606-PUR-8702", items: 11, amount: 271500, file: "cold_storage.pdf" },
 ];

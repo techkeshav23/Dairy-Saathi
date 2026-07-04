@@ -3,10 +3,10 @@ import { useState } from "react";
 import { Card, CardHead } from "@/components/ui";
 
 const FIELDS: [string, string][] = [
-  ["Business Name", "DAIRY DEMO Wholesale"],
+  ["Business Name", "MY ORDER PRO Wholesale"],
   ["GSTIN", "09ABCDE1234F1Z5"],
   ["Contact", "+91-82188 26414"],
-  ["Email", "orders@dairydemo.in"],
+  ["Email", "orders@myorderpro.in"],
   ["Address", "Main Bazaar, Bijnor, Uttar Pradesh, 246725"],
 ];
 const PREFS: [string, boolean][] = [

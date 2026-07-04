@@ -22,15 +22,15 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-900/45 to-zinc-900/25" />
         <div className="relative z-10 flex h-full flex-col justify-between p-12 text-white">
           <div className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/15 text-xl font-bold backdrop-blur ring-1 ring-white/30">D</div>
-            <span className="text-lg font-semibold tracking-tight">DAIRY DEMO</span>
+            <Image src="/logo.jpeg" alt="MY ORDER PRO" width={44} height={44} className="rounded-2xl ring-1 ring-white/30" />
+            <span className="text-lg font-semibold tracking-tight">MY ORDER PRO</span>
           </div>
           <div>
             <h1 className="max-w-md text-4xl font-bold leading-tight tracking-tight">
-              Run your dairy distribution from one console.
+              Run your wholesale distribution from one console.
             </h1>
             <p className="mt-4 max-w-md text-white/80">
-              Orders, stock, retailers, khata and reports - add inventory straight from a supplier PDF bill.
+              Orders, stock, retailers, khata and reports — manage your entire B2B business in one place.
             </p>
             <div className="mt-10 flex gap-10">
               {[["Rs 48.4L", "Revenue this FY"], ["1,284", "Orders processed"], ["318", "Active retailers"]].map(([a, b]) => (
@@ -49,21 +49,21 @@ export default function LoginPage() {
         <form onSubmit={submit} className="w-full max-w-sm">
           <div className="mb-1 text-[12px] font-semibold uppercase tracking-widest text-brand">Welcome back</div>
           <h2 className="text-2xl font-bold tracking-tight text-zinc-900">Sign in to Admin</h2>
-          <p className="mt-1 text-sm text-zinc-500">Use any credentials - this is a demo console.</p>
+          <p className="mt-1 text-sm text-zinc-500">Sign in to manage your distribution business.</p>
 
           <div className="mt-7 space-y-4">
             <label className="block">
               <span className="mb-1.5 block text-[12px] font-medium text-zinc-500">Email</span>
               <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand-soft">
                 <Mail size={16} className="text-zinc-400" />
-                <input defaultValue="admin@dairydemo.in" className="w-full bg-transparent py-2.5 text-sm text-zinc-900 outline-none" />
+                <input defaultValue="admin@myorderpro.in" className="w-full bg-transparent py-2.5 text-sm text-zinc-900 outline-none" />
               </div>
             </label>
             <label className="block">
               <span className="mb-1.5 block text-[12px] font-medium text-zinc-500">Password</span>
               <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand-soft">
                 <Lock size={16} className="text-zinc-400" />
-                <input type="password" defaultValue="demo1234" className="w-full bg-transparent py-2.5 text-sm text-zinc-900 outline-none" />
+                <input type="password" defaultValue="" placeholder="••••••••" className="w-full bg-transparent py-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-300" />
               </div>
             </label>
           </div>
@@ -76,7 +76,6 @@ export default function LoginPage() {
           <button disabled={loading} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-3 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.22)] transition hover:opacity-95 disabled:opacity-70">
             {loading ? "Signing in..." : <>Sign In to Console <ArrowRight size={16} /></>}
           </button>
-          <p className="mt-4 text-center text-[12px] text-zinc-400">Demo login &middot; no real authentication</p>
         </form>
         <p className="mt-8 text-center text-xs text-slate-500">Powered by <a href="https://codeblimp.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-700 hover:underline">CodeBlimp</a></p>
       </div>

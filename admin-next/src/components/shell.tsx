@@ -1,6 +1,7 @@
 "use client";
 import { ReactNode, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, ShoppingCart, Package, Truck, Store, BookOpen,
@@ -59,9 +60,9 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="flex h-full flex-col">
           {/* Brand */}
           <div className="flex items-center gap-3 px-5 py-[18px]">
-            <div className="grid h-9 w-9 place-items-center rounded-[9px] bg-brand text-[15px] font-bold text-white">D</div>
+            <Image src="/logo.jpeg" alt="MY ORDER PRO" width={36} height={36} className="rounded-[9px]" priority />
             <div className="leading-tight">
-              <div className="text-[13.5px] font-semibold tracking-tight text-white">DAIRY DEMO</div>
+              <div className="text-[13.5px] font-semibold tracking-tight text-white">MY ORDER PRO</div>
               <div className="text-[11px] text-sidebar-muted">Distribution Console</div>
             </div>
             <button className="ml-auto text-sidebar-muted lg:hidden" onClick={() => setOpen(false)}><X size={20} /></button>
@@ -122,7 +123,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </button>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-[11px] text-faint">
-              DAIRY DEMO <ChevronRight size={11} /> <span className="font-medium text-muted">{titleFor(path)}</span>
+              MY ORDER PRO <ChevronRight size={11} /> <span className="font-medium text-muted">{titleFor(path)}</span>
             </div>
             <h1 className="truncate text-[17px] font-semibold tracking-tight text-fg">{titleFor(path)}</h1>
           </div>
@@ -138,9 +139,9 @@ export function Shell({ children }: { children: ReactNode }) {
             </button>
             <div className="mx-0.5 hidden h-6 w-px bg-border sm:block" />
             <div className="flex items-center gap-2.5">
-              <div className="grid h-9 w-9 place-items-center rounded-full bg-fg text-[11px] font-semibold tracking-wide text-white">RD</div>
+              <div className="grid h-9 w-9 place-items-center rounded-full bg-fg text-[11px] font-semibold tracking-wide text-white">MO</div>
               <div className="hidden leading-tight sm:block">
-                <div className="text-[13px] font-semibold text-fg">Royal Dairy</div>
+                <div className="text-[13px] font-semibold text-fg">MY ORDER PRO</div>
                 <div className="text-[11px] text-faint">Administrator</div>
               </div>
             </div>
