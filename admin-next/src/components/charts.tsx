@@ -15,10 +15,10 @@ const tip = {
   boxShadow: "0 8px 24px rgba(15,23,42,.10)",
 };
 
-export function SalesArea() {
+export function SalesArea({ data = salesTrend }: { data?: typeof salesTrend }) {
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <AreaChart data={salesTrend} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+      <AreaChart data={data} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
         <defs>
           <linearGradient id="g-sales" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--brand)" stopOpacity={0.28} />
@@ -37,12 +37,12 @@ export function SalesArea() {
   );
 }
 
-export function CategoryDonut() {
+export function CategoryDonut({ data = categorySplit }: { data?: typeof categorySplit }) {
   return (
     <ResponsiveContainer width="100%" height={220}>
       <PieChart>
-        <Pie data={categorySplit} dataKey="value" nameKey="name" innerRadius={62} outerRadius={92} paddingAngle={2} stroke="none">
-          {categorySplit.map((c) => <Cell key={c.name} fill={c.color} />)}
+        <Pie data={data} dataKey="value" nameKey="name" innerRadius={62} outerRadius={92} paddingAngle={2} stroke="none">
+          {data.map((c) => <Cell key={c.name} fill={c.color} />)}
         </Pie>
         <Tooltip contentStyle={tip} formatter={(v, n) => [`${v}%`, n]} />
       </PieChart>
@@ -50,8 +50,8 @@ export function CategoryDonut() {
   );
 }
 
-export function TopProductsBars() {
-  const data = [...topProducts].reverse();
+export function TopProductsBars({ data: input = topProducts }: { data?: typeof topProducts }) {
+  const data = [...input].reverse();
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={data} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>

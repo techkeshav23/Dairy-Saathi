@@ -3,13 +3,19 @@ import { ChevronRight } from "lucide-react";
 import { Card, CardHead, Pill } from "@/components/ui";
 import { KpiCard } from "@/components/kpi";
 import { SalesArea, CategoryDonut, TopProductsBars } from "@/components/charts";
-import { kpis, orders, categorySplit } from "@/lib/data";
+import { kpis } from "@/lib/data";
 import { inr } from "@/lib/format";
-import { getDashboardKpis } from "@/lib/supabase-data";
+import { getDashboardKpis, getSalesTrend, getCategorySplit, getTopProducts, getOrders } from "@/lib/supabase-data";
 import { useSupabase } from "@/lib/supabase";
 
 export default async function DashboardPage() {
-  const live = await getDashboardKpis();
+  const [live, salesTrend, catSplit, topProds, recentOrders] = await Promise.all([
+    getDashboardKpis(),
+    getSalesTrend(),
+    getCategorySplit(),
+    getTopProducts(),
+    getOrders(),
+  ]);
 
   const displayKpis = kpis.map((k) => {
     if (useSupabase) {
@@ -48,13 +54,13 @@ export default async function DashboardPage() {
               <span className="flex items-center gap-1.5"><i className="inline-block h-0.5 w-4 rounded bg-brand" />Sales</span>
               <span className="flex items-center gap-1.5"><i className="inline-block h-0.5 w-4 rounded bg-faint" />Target</span>
             </div>} />
-          <div className="px-3 pb-4"><SalesArea /></div>
+          <div className="px-3 pb-4"><SalesArea data={salesTrend} /></div>
         </Card>
         <Card>
           <CardHead title="Category Mix" />
-          <div className="px-3"><CategoryDonut /></div>
+          <div className="px-3"><CategoryDonut data={catSplit} /></div>
           <ul className="space-y-2 px-5 pb-5 pt-1">
-            {categorySplit.map((c) => (
+            {catSplit.map((c) => (
               <li key={c.name} className="flex items-center text-[13px] text-muted">
                 <span className="mr-2.5 h-2.5 w-2.5 rounded-full" style={{ background: c.color }} />
                 {c.name}<b className="tnum ml-auto text-fg">{c.value}%</b>
@@ -81,7 +87,7 @@ export default async function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {orders.slice(0, 6).map((o) => (
+                {recentOrders.slice(0, 6).map((o) => (
                   <tr key={o.id} className="border-b border-border2 last:border-0 hover:bg-card2">
                     <td className="px-5 py-3 font-semibold">{o.ref}</td>
                     <td className="px-5 py-3">{o.retailer}</td>
@@ -95,7 +101,7 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHead title="Top Products" />
-          <div className="px-2 pb-4"><TopProductsBars /></div>
+          <div className="px-2 pb-4"><TopProductsBars data={topProds} /></div>
         </Card>
       </div>
     </div>

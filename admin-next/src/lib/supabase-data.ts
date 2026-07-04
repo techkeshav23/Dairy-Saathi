@@ -7,6 +7,9 @@ import {
   retailers as mockRetailers,
   ledger as mockLedger,
   banners as mockBanners,
+  salesTrend as mockSalesTrend,
+  categorySplit as mockCategorySplit,
+  topProducts as mockTopProducts,
 } from "./data";
 
 // This data layer maps the ACTUAL Supabase schema (see /supabase/*.sql) to the admin's
@@ -222,5 +225,85 @@ export async function getDashboardKpis(): Promise<{
   } catch (err) {
     console.error("getDashboardKpis:", err);
     return fallback;
+  }
+}
+
+// ---------------------------------------------------------------- Sales trend (chart)
+export async function getSalesTrend(): Promise<typeof mockSalesTrend> {
+  if (!supabaseAdmin) return mockSalesTrend;
+  try {
+    const { data, error } = await supabaseAdmin.from("orders").select("total, status, created_at");
+    if (error) throw error;
+    const rows = ((data as any[]) ?? []).filter((o) => String(o.status).toLowerCase() !== "cancelled");
+    if (rows.length === 0) return mockSalesTrend;
+
+    const now = new Date();
+    const months: { key: string; m: string }[] = [];
+    const bucket = new Map<string, number>();
+    for (let i = 7; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      bucket.set(key, 0);
+      months.push({ key, m: d.toLocaleString("en-US", { month: "short" }) });
+    }
+    for (const o of rows) {
+      const d = new Date(o.created_at);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      if (bucket.has(key)) bucket.set(key, (bucket.get(key) || 0) + (Number(o.total) || 0));
+    }
+    const vals = months.map((mm) => bucket.get(mm.key) || 0);
+    const target = Math.round(Math.max(...vals, 1) * 0.85);
+    return months.map((mm, i) => ({ m: mm.m, sales: vals[i], target }));
+  } catch (err) {
+    console.error("getSalesTrend:", err);
+    return mockSalesTrend;
+  }
+}
+
+// ---------------------------------------------------------------- Category split (chart)
+export async function getCategorySplit(): Promise<typeof mockCategorySplit> {
+  if (!supabaseAdmin) return mockCategorySplit;
+  try {
+    const { data, error } = await supabaseAdmin.from("order_items").select("qty, unit_price, products(categories(name))");
+    if (error) throw error;
+    const map = new Map<string, number>();
+    for (const it of (data as any[]) ?? []) {
+      const catObj = it.products?.categories;
+      const name = (Array.isArray(catObj) ? catObj[0]?.name : catObj?.name) || "Other";
+      map.set(name, (map.get(name) || 0) + Number(it.qty) * Number(it.unit_price));
+    }
+    if (map.size === 0) return mockCategorySplit;
+    const total = [...map.values()].reduce((a, b) => a + b, 0) || 1;
+    const colors = ["#2b50d6", "#0f9d63", "#c07708", "#586172", "#2b6cf0", "#dc4249"];
+    return [...map.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([name, val], i) => ({ name, value: Math.round((val / total) * 100), color: colors[i % colors.length] }));
+  } catch (err) {
+    console.error("getCategorySplit:", err);
+    return mockCategorySplit;
+  }
+}
+
+// ---------------------------------------------------------------- Top products (chart)
+export async function getTopProducts(): Promise<typeof mockTopProducts> {
+  if (!supabaseAdmin) return mockTopProducts;
+  try {
+    const { data, error } = await supabaseAdmin.from("order_items").select("qty, unit_price, products(name)");
+    if (error) throw error;
+    const map = new Map<string, { qty: number; revenue: number }>();
+    for (const it of (data as any[]) ?? []) {
+      const name = (Array.isArray(it.products) ? it.products[0]?.name : it.products?.name) || "Unknown";
+      const cur = map.get(name) || { qty: 0, revenue: 0 };
+      map.set(name, { qty: cur.qty + Number(it.qty), revenue: cur.revenue + Number(it.qty) * Number(it.unit_price) });
+    }
+    if (map.size === 0) return mockTopProducts;
+    return [...map.entries()]
+      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .slice(0, 5)
+      .map(([name, v]) => ({ name, qty: v.qty, revenue: Math.round(v.revenue) }));
+  } catch (err) {
+    console.error("getTopProducts:", err);
+    return mockTopProducts;
   }
 }

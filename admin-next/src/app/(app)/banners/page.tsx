@@ -1,12 +1,29 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, X, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Loader2, ImageIcon } from "lucide-react";
 import { banners as seed } from "@/lib/data";
 
-type Banner = { id: string; title: string; sub: string; tag: string; color: string; active: boolean };
+type Banner = { id: string; title: string; sub: string; tag: string; color: string; image: string; active: boolean };
 
-const BLANK: Banner = { id: "", title: "", sub: "", tag: "OFFER", color: "#2b50d6", active: true };
+const BLANK: Banner = { id: "", title: "", sub: "", tag: "OFFER", color: "#2b50d6", image: "", active: true };
 const TAGS = ["OFFER", "STOCK AVAILABLE", "KHATA", "NEW", "COMBO", "SALE"];
+
+function BannerArt({ image, color, children }: { image: string; color: string; children: React.ReactNode }) {
+  return (
+    <div className="relative flex min-h-[130px] flex-col justify-center overflow-hidden p-5 text-white">
+      {image ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${color}f2 0%, ${color}b3 55%, ${color}66 100%)` }} />
+        </>
+      ) : (
+        <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)` }} />
+      )}
+      <div className="relative z-10">{children}</div>
+    </div>
+  );
+}
 
 export default function BannersPage() {
   const [items, setItems] = useState<Banner[]>([]);
@@ -22,12 +39,12 @@ export default function BannersPage() {
       const data = await res.json();
       if (Array.isArray(data) && data.length) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setItems(data.map((b: any) => ({ id: b.id, title: b.title || "", sub: b.subtitle || "", tag: b.tag || "", color: b.accent_hex || "#2b50d6", active: true })));
+        setItems(data.map((b: any) => ({ id: b.id, title: b.title || "", sub: b.subtitle || "", tag: b.tag || "", color: b.accent_hex || "#2b50d6", image: b.image || b.image_url || "", active: true })));
       } else {
-        setItems(seed.map((b, i) => ({ ...b, id: "seed_" + i })));
+        setItems(seed.map((b, i) => ({ ...b, id: "seed_" + i, image: "" })));
       }
     } catch {
-      setItems(seed.map((b, i) => ({ ...b, id: "seed_" + i })));
+      setItems(seed.map((b, i) => ({ ...b, id: "seed_" + i, image: "" })));
     }
     setLoading(false);
   }, []);
@@ -44,7 +61,7 @@ export default function BannersPage() {
       const res = await fetch("/api/banners", {
         method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: modal.id, title: modal.title, subtitle: modal.sub, tag: modal.tag, color: modal.color }),
+        body: JSON.stringify({ id: modal.id, title: modal.title, subtitle: modal.sub, tag: modal.tag, color: modal.color, image: modal.image }),
       });
       const j = await res.json();
       if (!res.ok) { setErr(j.error || "Save failed"); setSaving(false); return; }
@@ -79,11 +96,11 @@ export default function BannersPage() {
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((b) => (
             <div key={b.id} className="overflow-hidden rounded-xl border border-border bg-card elev-1">
-              <div className="flex min-h-[130px] flex-col justify-center p-5 text-white" style={{ background: `linear-gradient(135deg, ${b.color}, ${b.color}cc)` }}>
-                {b.tag && <span className="self-start rounded bg-white/25 px-2 py-0.5 text-[10px] font-bold tracking-wider">{b.tag}</span>}
-                <h4 className="mt-2.5 text-xl font-bold">{b.title}</h4>
-                <p className="mt-1 text-[13px] text-white/90">{b.sub}</p>
-              </div>
+              <BannerArt image={b.image} color={b.color}>
+                {b.tag && <span className="self-start rounded bg-white/25 px-2 py-0.5 text-[10px] font-bold tracking-wider backdrop-blur-sm">{b.tag}</span>}
+                <h4 className="mt-2.5 text-xl font-bold drop-shadow-sm">{b.title}</h4>
+                <p className="mt-1 text-[13px] text-white/90 drop-shadow-sm">{b.sub}</p>
+              </BannerArt>
               <div className="flex items-center justify-between px-4 py-3">
                 <button onClick={() => toggle(b.id)} className="flex items-center gap-2 text-[13px] font-medium text-muted">
                   <span className={`relative h-5 w-9 rounded-full transition ${b.active ? "bg-success" : "bg-border"}`}>
@@ -115,10 +132,12 @@ export default function BannersPage() {
 
             {/* live preview */}
             <div className="px-5 pt-5">
-              <div className="flex min-h-[104px] flex-col justify-center rounded-xl p-4 text-white" style={{ background: `linear-gradient(135deg, ${modal.color}, ${modal.color}cc)` }}>
-                {modal.tag && <span className="self-start rounded bg-white/25 px-2 py-0.5 text-[9px] font-bold tracking-wider">{modal.tag}</span>}
-                <h4 className="mt-1.5 text-lg font-bold">{modal.title || "Banner title"}</h4>
-                <p className="text-[12px] text-white/90">{modal.sub || "Subtitle text"}</p>
+              <div className="overflow-hidden rounded-xl">
+                <BannerArt image={modal.image} color={modal.color}>
+                  {modal.tag && <span className="self-start rounded bg-white/25 px-2 py-0.5 text-[9px] font-bold tracking-wider">{modal.tag}</span>}
+                  <h4 className="mt-1.5 text-lg font-bold drop-shadow-sm">{modal.title || "Banner title"}</h4>
+                  <p className="text-[12px] text-white/90 drop-shadow-sm">{modal.sub || "Subtitle text"}</p>
+                </BannerArt>
               </div>
             </div>
 
@@ -131,6 +150,11 @@ export default function BannersPage() {
               <label className="block">
                 <span className="mb-1 block text-[12px] font-medium text-muted">Subtitle</span>
                 <input value={modal.sub} onChange={(e) => setModal({ ...modal, sub: e.target.value })} placeholder="Basmati • Atta • Oil — bulk rate par"
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
+              </label>
+              <label className="block">
+                <span className="mb-1 flex items-center gap-1.5 text-[12px] font-medium text-muted"><ImageIcon size={13} /> Image URL <span className="text-faint">(optional)</span></span>
+                <input value={modal.image} onChange={(e) => setModal({ ...modal, image: e.target.value })} placeholder="https://…/banner.jpg"
                   className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
               </label>
               <div className="grid grid-cols-2 gap-4">
