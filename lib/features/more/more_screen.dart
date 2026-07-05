@@ -55,9 +55,6 @@ class MoreScreen extends StatelessWidget {
                   _row(context, null, 'Logout', () => _logout(context),
                       trailing: const Icon(Icons.logout, color: AppColors.primary, size: 22)),
                 ]),
-                const SizedBox(height: Dimensions.paddingSizeExtremeLarge),
-
-                _poweredBy(),
                 const SizedBox(height: Dimensions.paddingSizeLarge),
               ],
             ),
@@ -134,32 +131,6 @@ class MoreScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _poweredBy() {
-    Widget circle(String l, Color c) => Container(
-          width: 26, height: 26, alignment: Alignment.center,
-          decoration: BoxDecoration(color: c, shape: BoxShape.circle),
-          child: Text(l, style: robotoBold.copyWith(color: Colors.white, fontSize: 12)),
-        );
-    return Column(
-      children: [
-        Text('Powered By', style: robotoSemiBold.copyWith(
-            color: const Color(0xFF2D3436), fontSize: Dimensions.fontSizeSmall)),
-        const SizedBox(height: 6),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            circle('D', const Color(0xFF1597A5)),
-            Transform.translate(offset: const Offset(-4, 0), child: circle('I', const Color(0xFFB11E2F))),
-            Transform.translate(offset: const Offset(-8, 0), child: circle('A', const Color(0xFF3DA546))),
-            Transform.translate(offset: const Offset(-12, 0), child: circle('L', const Color(0xFFF2A823))),
-            Transform.translate(offset: const Offset(-8, 0),
-                child: Text('ERP', style: robotoBold.copyWith(color: const Color(0xFF1A1A1A), fontSize: 16))),
-          ],
-        ),
-      ],
     );
   }
 

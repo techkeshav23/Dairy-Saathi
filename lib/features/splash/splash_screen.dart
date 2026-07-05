@@ -39,8 +39,9 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     if (auth.isLoggedIn && (!SupabaseConfig.useSupabase || session != null)) {
+      await auth.refreshRole();
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, RouteHelper.dashboard);
+      Navigator.pushReplacementNamed(context, RouteHelper.homeFor(auth.isDistributor));
     } else if (!onboardSeen) {
       Navigator.pushReplacementNamed(context, RouteHelper.onboarding);
     } else {

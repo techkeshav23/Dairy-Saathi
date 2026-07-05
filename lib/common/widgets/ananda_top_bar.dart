@@ -20,7 +20,20 @@ class AnandaTopBar extends StatelessWidget {
               Dimensions.paddingSizeDefault, 8, Dimensions.paddingSizeDefault, 10),
           child: Row(
             children: [
-              const SizedBox(width: 40),
+              // Hamburger only when the surrounding shell has a drawer (distributor
+              // console); a plain spacer in the retailer app (no drawer).
+              Builder(builder: (ctx) {
+                final hasDrawer = Scaffold.maybeOf(ctx)?.hasDrawer ?? false;
+                if (!hasDrawer) return const SizedBox(width: 40);
+                return SizedBox(
+                  width: 40,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.menu, color: AppColors.textDark),
+                    onPressed: () => Scaffold.of(ctx).openDrawer(),
+                  ),
+                );
+              }),
               const Spacer(),
               const AppLogo(size: 30),
               const SizedBox(width: 8),

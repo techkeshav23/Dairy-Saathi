@@ -10,7 +10,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 export async function GET() {
   if (!supabaseAdmin) return NextResponse.json([]);
   const [uRes, lRes] = await Promise.all([
-    supabaseAdmin.from("app_users").select("id, code, business_name, owner_name, area, phone, email, gst, credit_limit, status, created_by, created_at, orders(id)"),
+    supabaseAdmin.from("app_users").select("id, code, business_name, owner_name, area, phone, email, gst, credit_limit, status, created_by, role, created_at, orders(id)"),
     supabaseAdmin.from("ledger_entries").select("user_id, type, amount"),
   ]);
   if (uRes.error) return NextResponse.json({ error: uRes.error.message }, { status: 500 });
@@ -33,6 +33,7 @@ export async function GET() {
     limit: Number(u.credit_limit) || 0,
     outstanding: Math.max(0, Math.round(outMap.get(u.id) ?? 0)),
     status: u.status || "active",
+    role: u.role || "retailer",
     createdBy: u.created_by || "self",
     orders: u.orders?.length ?? 0,
   }));
@@ -94,6 +95,7 @@ export async function PATCH(req: NextRequest) {
   if (b.gst !== undefined) patch.gst = b.gst;
   if (b.limit !== undefined) patch.credit_limit = Number(b.limit) || 0;
   if (b.status !== undefined) patch.status = b.status;
+  if (b.role !== undefined) patch.role = b.role;
 
   if (Object.keys(patch).length) {
     const { error } = await supabaseAdmin.from("app_users").update(patch).eq("id", b.id);

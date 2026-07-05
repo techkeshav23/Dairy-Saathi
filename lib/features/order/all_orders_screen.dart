@@ -92,22 +92,6 @@ class _AllOrdersScreenState extends State<AllOrdersScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        color: const Color(0xFFECEDEF),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 52,
-            child: Row(
-              children: [
-                Expanded(child: _barAction(context, Icons.filter_list, 'Filter')),
-                const VerticalDivider(width: 1, color: Color(0xFFC9CCD1), indent: 12, endIndent: 12),
-                Expanded(child: _barAction(context, Icons.swap_vert, 'Sort')),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -137,18 +121,6 @@ class _AllOrdersScreenState extends State<AllOrdersScreen> {
           const SizedBox(height: 2),
           Text(label, style: robotoRegular.copyWith(color: const Color(0xFF4A4F57), fontSize: Dimensions.fontSizeSmall)),
         ],
-      );
-
-  Widget _barAction(BuildContext context, IconData icon, String label) => InkWell(
-        onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$label — demo'))),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: const Color(0xFF222222), size: 22),
-            const SizedBox(width: 8),
-            Text(label, style: robotoBold.copyWith(color: const Color(0xFF1F1F1F), fontSize: Dimensions.fontSizeLarge)),
-          ],
-        ),
       );
 }
 

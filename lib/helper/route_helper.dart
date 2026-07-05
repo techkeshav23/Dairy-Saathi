@@ -3,13 +3,14 @@ import 'package:my_order_pro/data/models/category.dart';
 import 'package:my_order_pro/data/models/order.dart';
 import 'package:my_order_pro/data/models/product.dart';
 import 'package:my_order_pro/features/auth/sign_in_screen.dart';
-import 'package:my_order_pro/features/auth/verify_otp_screen.dart';
+import 'package:my_order_pro/features/auth/sign_up_screen.dart';
 import 'package:my_order_pro/features/cart/cart_screen.dart';
 import 'package:my_order_pro/features/category/category_products_screen.dart';
 import 'package:my_order_pro/features/category/place_order_screen.dart';
 import 'package:my_order_pro/features/checkout/checkout_screen.dart';
 import 'package:my_order_pro/features/checkout/order_success_screen.dart';
 import 'package:my_order_pro/features/dashboard/dashboard_screen.dart';
+import 'package:my_order_pro/features/dashboard/distributor_dashboard.dart';
 import 'package:my_order_pro/features/item/product_detail_screen.dart';
 import 'package:my_order_pro/features/ledger/ledger_screen.dart';
 import 'package:my_order_pro/features/ledger/manual_recharge_screen.dart';
@@ -30,9 +31,13 @@ class RouteHelper {
   static const String splash = '/';
   static const String onboarding = '/onboarding';
   static const String signIn = '/sign-in';
-  static const String verifyOtp = '/verify-otp';
+  static const String signUp = '/sign-up';
   static const String dashboard = '/dashboard';
+  static const String distributorDashboard = '/distributor';
   static const String placeOrder = '/place-order';
+
+  /// The home shell for a given role — distributor console vs retailer app.
+  static String homeFor(bool isDistributor) => isDistributor ? distributorDashboard : dashboard;
   static const String categoryProducts = '/category';
   static const String productDetail = '/product';
   static const String search = '/search';
@@ -68,11 +73,14 @@ class RouteHelper {
       case signIn:
         page = const SignInScreen();
         break;
-      case verifyOtp:
-        page = VerifyOtpScreen(phone: settings.arguments as String);
+      case signUp:
+        page = const SignUpScreen();
         break;
       case dashboard:
         page = const DashboardScreen();
+        break;
+      case distributorDashboard:
+        page = const DistributorDashboard();
         break;
       case placeOrder:
         page = const PlaceOrderScreen();

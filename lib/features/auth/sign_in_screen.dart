@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:my_order_pro/common/widgets/app_logo.dart';
 import 'package:my_order_pro/common/widgets/custom_button.dart';
@@ -17,34 +16,46 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  final _phone = TextEditingController();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _obscure = true;
 
-  Future<void> _sendOtp() async {
+  Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
-    
-    final phone = _phone.text.trim();
-    final auth = context.read<AuthProvider>();
-    
-    // Unfocus keyboard
     FocusScope.of(context).unfocus();
-    
-    final err = await auth.requestOtp(phone);
+    final auth = context.read<AuthProvider>();
+    final err = await auth.signIn(_email.text.trim(), _password.text);
     if (!mounted) return;
     if (err != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not send OTP: $err'), backgroundColor: Colors.red),
+        SnackBar(content: Text(err), backgroundColor: AppColors.error),
       );
       return;
     }
-    Navigator.pushNamed(context, RouteHelper.verifyOtp, arguments: phone);
+    Navigator.pushNamedAndRemoveUntil(context, RouteHelper.homeFor(auth.isDistributor), (r) => false);
   }
 
   @override
   void dispose() {
-    _phone.dispose();
+    _email.dispose();
+    _password.dispose();
     super.dispose();
   }
+
+  InputDecoration _decoration(String hint, IconData icon, {Widget? suffix}) => InputDecoration(
+        hintText: hint,
+        hintStyle: robotoRegular.copyWith(color: AppColors.textLight),
+        prefixIcon: Icon(icon, color: AppColors.textLight, size: 20),
+        suffixIcon: suffix,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault), borderSide: const BorderSide(color: AppColors.border)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault), borderSide: const BorderSide(color: AppColors.border)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault), borderSide: const BorderSide(color: Colors.red)),
+        filled: true,
+        fillColor: AppColors.card,
+        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -60,91 +71,65 @@ class _SignInScreenState extends State<SignInScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const AppLogo(size: 92, showWordmark: true),
-                  const SizedBox(height: 28),
+                  const AppLogo(size: 88, showWordmark: true),
+                  const SizedBox(height: 32),
                   Text('Welcome Back', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge)),
                   const SizedBox(height: 8),
-                  Text('Sign in to manage your wholesale business',
+                  Text('Sign in to reorder your daily stock',
                       textAlign: TextAlign.center,
                       style: robotoRegular.copyWith(color: AppColors.textMedium, fontSize: Dimensions.fontSizeDefault)),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 36),
 
-                  // Mobile number field with integrated country code
                   TextFormField(
-                    controller: _phone,
-                    keyboardType: TextInputType.phone,
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
                     style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(10),
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your mobile number';
-                      }
-                      if (!RegExp(r'^[6-9]\d{9}$').hasMatch(value)) {
-                        return 'Enter a valid 10-digit mobile number';
-                      }
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Please enter your email';
+                      if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim())) return 'Enter a valid email';
                       return null;
                     },
-                    decoration: InputDecoration(
-                      hintText: 'Mobile Number',
-                      hintStyle: robotoRegular.copyWith(color: AppColors.textLight),
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text('🇮🇳', style: TextStyle(fontSize: 20)),
-                            const SizedBox(width: 8),
-                            Text('+91', style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge)),
-                            const SizedBox(width: 8),
-                            Container(width: 1, height: 24, color: AppColors.border),
-                            const SizedBox(width: 8),
-                          ],
-                        ),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                        borderSide: const BorderSide(color: Colors.red),
-                      ),
-                      filled: true,
-                      fillColor: AppColors.card,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
+                    decoration: _decoration('Email address', Icons.mail_outline),
+                  ),
+                  const SizedBox(height: Dimensions.paddingSizeDefault),
+
+                  TextFormField(
+                    controller: _password,
+                    obscureText: _obscure,
+                    style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
+                    validator: (v) => (v == null || v.length < 6) ? 'Password must be at least 6 characters' : null,
+                    onFieldSubmitted: (_) => _signIn(),
+                    decoration: _decoration('Password', Icons.lock_outline,
+                        suffix: IconButton(
+                          icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: AppColors.textLight, size: 20),
+                          onPressed: () => setState(() => _obscure = !_obscure),
+                        )),
                   ),
                   const SizedBox(height: Dimensions.paddingSizeExtraLarge),
 
-                  CustomButton(
-                    text: 'Get OTP', 
-                    isLoading: auth.loading, 
-                    onPressed: _sendOtp,
-                  ),
+                  CustomButton(text: 'Sign In', isLoading: auth.loading, onPressed: _signIn),
                   const SizedBox(height: Dimensions.paddingSizeLarge),
 
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("New here? ", style: robotoRegular.copyWith(color: AppColors.textMedium)),
+                      GestureDetector(
+                        onTap: () => Navigator.pushNamed(context, RouteHelper.signUp),
+                        child: Text('Create an account', style: robotoBold.copyWith(color: AppColors.primary)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: Dimensions.paddingSizeLarge),
                   Text.rich(
                     TextSpan(
-                      text: 'By signing in, I accept the ',
-                      style: robotoRegular.copyWith(
-                          color: AppColors.textLight, fontSize: Dimensions.fontSizeSmall),
+                      text: 'By signing in, you accept the ',
+                      style: robotoRegular.copyWith(color: AppColors.textLight, fontSize: Dimensions.fontSizeSmall),
                       children: [
-                        TextSpan(text: 'Privacy Policy', style: robotoMedium.copyWith(
-                            color: AppColors.primary, fontSize: Dimensions.fontSizeSmall)),
+                        TextSpan(text: 'Privacy Policy', style: robotoMedium.copyWith(color: AppColors.primary, fontSize: Dimensions.fontSizeSmall)),
                         const TextSpan(text: ' and '),
-                        TextSpan(text: 'Terms', style: robotoMedium.copyWith(
-                            color: AppColors.primary, fontSize: Dimensions.fontSizeSmall)),
+                        TextSpan(text: 'Terms', style: robotoMedium.copyWith(color: AppColors.primary, fontSize: Dimensions.fontSizeSmall)),
                       ],
                     ),
                     textAlign: TextAlign.center,

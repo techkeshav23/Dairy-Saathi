@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_order_pro/common/widgets/app_logo.dart';
 import 'package:my_order_pro/util/app_colors.dart';
-import 'package:my_order_pro/features/dashboard/dashboard_screen.dart';
 import 'package:my_order_pro/providers/auth_provider.dart';
 import 'package:my_order_pro/features/settings/settings_screen.dart';
 import 'package:my_order_pro/features/parties/parties_screen.dart';
@@ -30,25 +29,6 @@ class AppDrawer extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: [
-                _buildMenuItem(
-                  context,
-                  icon: Icons.dashboard_rounded,
-                  title: 'Business Dashboard',
-                  onTap: () {
-                    Navigator.pop(context);
-                    DashboardScreen.switchTab(context, 0);
-                  },
-                ),
-                _buildMenuItem(
-                  context,
-                  icon: Icons.bar_chart_rounded,
-                  title: 'Reports',
-                  onTap: () {
-                    Navigator.pop(context);
-                    DashboardScreen.switchTab(context, 1);
-                  },
-                ),
-                const _DrawerDivider(),
                 _buildMenuItem(
                   context,
                   icon: Icons.people_alt_rounded,
