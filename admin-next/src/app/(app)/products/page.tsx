@@ -37,7 +37,7 @@ export default function ProductsPage() {
       setList(productsRes.ok && Array.isArray(productsData) ? productsData : []);
       setCats(
         categoriesRes.ok && Array.isArray(categoriesData)
-          ? categoriesData.map((c: { name?: string }) => c.name).filter(Boolean).sort()
+          ? categoriesData.map((c: { name?: string }) => c.name).filter((n): n is string => !!n).sort()
           : []
       );
     } catch {
