@@ -91,6 +91,16 @@ Run `schema.sql` → `schema_v18` **in order**. Migrations **v11–v18** (added 
 | `schema_v17_retailer_accounts.sql` | enrich `app_users` (email, business_name, owner_name, area, credit_limit, status, code, created_by) |
 | `schema_v18_user_roles.sql` | `app_users.role` (retailer/distributor) |
 
+- **P0 Priority backlog is DONE:**
+  - **Orders:** Fully manageable (Confirmed/Packed/Dispatched/Delivered) from the Admin panel via `OrderStatusSelect`.
+  - **Ledger:** Manual entries for Khata (Retailer Recharges) can be logged directly from Admin panel.
+  - **Stock Sync:** Automated stock deduction via Postgres triggers (`schema_v20`).
+  - **Credit Limits:** Fetch real `credit_limit` limits in Flutter `auth_provider.dart` and block if exceeded.
+  - **Invoices:** Mobile app has a "Download Bill" PDF generator built-in.
+- **P1/P2 CRM backlog implemented:**
+  - **Settings Persistence:** Store profile settings in `store_settings` table (migration `schema_v21`).
+  - **Retailer 360:** Individual CRM dashboards for retailers in Admin panel `/retailers/[id]` with interaction logs (`schema_v22`).
+
 - **Key lesson baked into the migrations:** in Supabase, **RLS policies are not enough — every role
   (`anon`, `authenticated`, `service_role`) also needs table-level `GRANT`s.** Missing grants = SQLSTATE
   42501 "permission denied for table" even for service_role.

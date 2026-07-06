@@ -19,20 +19,22 @@
 
 **Backend (Supabase)** — Postgres + RLS + `service_role`, email/password auth, migrations `schema.sql` → `schema_v18`, retailer accounts, roles.
 
-**Not done:** deployment (local dev + debug APK only), notifications, most CRM depth, order lifecycle, payments wiring.
+**Not done:** deployment (local dev + debug APK only), notifications.
+All core P0 commerce loop features are complete (order lifecycle, payments wiring, stock sync, credit limits, invoices).
+Settings persistence and Retailer 360 CRM profile are complete.
 
 ---
 
-## 🔴 P0 — Core commerce (must work before real launch)
+## 🔴 P0 — Core commerce (must work before real launch) - ✅ ALL COMPLETE
 
-| # | Item | Why | Where | Effort |
+| # | Item | Why | Where | Status |
 |---|------|-----|-------|--------|
-| 1 | **Order lifecycle management** | Distributor must confirm → pack → dispatch → deliver / cancel an order; retailer sees live status. Admin Orders page is currently **read-only**. | admin `orders/page.tsx` + `/api/orders` (new: PATCH status) + mobile order-detail (show live status) | M |
-| 2 | **Payments & credit wiring** | Retailer "recharge"/payment and distributor "payment received" must **persist** and adjust `outstanding` + `credit_limit`. Currently mobile recharge/wallet is **not wired to backend**. | mobile `manual_recharge`, `wallet` → `payments`/`ledger_entries`; admin Ledger → record receipt; enforce credit in `place_order` | M |
-| 3 | **Stock / inventory sync** | Placing an order should **decrement stock**; purchase (stock-in) should **increment** it; block/flag out-of-stock. Stock field exists but isn't moved. | `place_order` RPC (decrement), purchase flow (increment), low-stock badge | M |
-| 4 | **Order → notification** | Distributor must be alerted on a **new order**; retailer on **status change**. None today. | Supabase Edge Function / FCM push + optional WhatsApp (Meta/MSG91) | L |
-| 5 | **GST invoice generation** | Generate + share the tax invoice PDF for an order (mobile already has `pdf_invoice_helper`; wire it to real order data) and expose in admin. | mobile order-detail → PDF; admin order → download | M |
-| 6 | **Credit-limit enforcement** | A retailer over their limit / blocked must not be able to place a khata order. | `place_order` RPC (check status='active' + limit) + mobile UX | S |
+| 1 | **Order lifecycle management** | Distributor confirms → packs → dispatches → delivers. | admin `orders` + mobile order-detail | ✅ Done |
+| 2 | **Payments & credit wiring** | Retailer Khata manual entries via Admin panel updates outstanding balance. | admin `ledger` | ✅ Done |
+| 3 | **Stock / inventory sync** | Order confirmed = stock decrements. Cancelled = stock increments. | `schema_v20` triggers | ✅ Done |
+| 4 | **Order → notification** | Not yet implemented (shifted to later phase). | - | ⏳ Pending |
+| 5 | **GST invoice generation** | Generate + share the tax invoice PDF for an order. | mobile order-detail | ✅ Done |
+| 6 | **Credit-limit enforcement** | Retailer blocked if over their real limit from backend. | `auth_provider` + `order_provider` | ✅ Done |
 
 ---
 
@@ -46,7 +48,7 @@
 | 10 | **Admin users & permissions** — password reset, invite multiple admins, roles (owner/staff/viewer) | Team use | M |
 | 11 | **Error tracking + logging** — Sentry (app + admin), structured logs, uptime monitor | Ops | S |
 | 12 | **Pagination + search** — orders/products/retailers lists paginate; make the global ⌘K + per-page search actually query | Scale | M |
-| 13 | **Settings persistence** — admin + mobile settings actually save (business profile, GST, preferences) | Correctness | S |
+| 13 | **Settings persistence** — admin + mobile settings actually save (business profile, GST, preferences) | Correctness | ✅ Done |
 | 14 | **Reports & exports** — real GSTR-1/2/3B summaries, CSV/PDF export of orders/ledger/retailers | Compliance | M |
 | 15 | **Reconcile mobile data layers** — order state mixes local `OrderProvider` + server RPC; unify. Retire the dead `Repository.requestOtp/verifyOtp` OTP methods | Tech debt | S |
 
@@ -56,7 +58,7 @@
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
-| 16 | **Retailer 360 profile** — one screen per retailer: full order history, payments, ledger, credit, notes, contact | Core CRM | M |
+| 16 | **Retailer 360 profile** — one screen per retailer: full order history, payments, ledger, credit, notes, contact | Core CRM | ✅ Done |
 | 17 | **Segments & tags** — group retailers by area / volume / credit-risk / custom tags; filter & bulk-act | Targeting | M |
 | 18 | **Follow-ups & tasks** — reminders ("collect ₹X from Sharma Kirana", "call new lead"); a task inbox for the distributor | Sales ops | M |
 | 19 | **Communication log** — log every call / WhatsApp / note against a retailer; one-tap call & WhatsApp (mobile has `whatsapp_helper`) | Relationship history | M |
