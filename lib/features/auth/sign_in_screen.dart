@@ -75,7 +75,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(height: 32),
                   Text('Welcome Back', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge)),
                   const SizedBox(height: 8),
-                  Text('Sign in to reorder your daily stock',
+                  Text('Sign in to manage orders or reorder stock',
                       textAlign: TextAlign.center,
                       style: robotoRegular.copyWith(color: AppColors.textMedium, fontSize: Dimensions.fontSizeDefault)),
                   const SizedBox(height: 36),
@@ -111,13 +111,14 @@ class _SignInScreenState extends State<SignInScreen> {
                   CustomButton(text: 'Sign In', isLoading: auth.loading, onPressed: _signIn),
                   const SizedBox(height: Dimensions.paddingSizeLarge),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text("New here? ", style: robotoRegular.copyWith(color: AppColors.textMedium)),
                       GestureDetector(
                         onTap: () => Navigator.pushNamed(context, RouteHelper.signUp),
-                        child: Text('Create an account', style: robotoBold.copyWith(color: AppColors.primary)),
+                        child: Text('Create retailer account', style: robotoBold.copyWith(color: AppColors.primary)),
                       ),
                     ],
                   ),

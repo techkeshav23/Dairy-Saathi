@@ -1,5 +1,6 @@
 import { Search, Download, ChevronRight } from "lucide-react";
 import { Card, Pill } from "@/components/ui";
+import OrderStatusSelect from "@/components/OrderStatusSelect";
 import { orders as mockOrders } from "@/lib/data";
 import { getOrders } from "@/lib/supabase-data";
 import { useSupabase } from "@/lib/supabase";
@@ -69,7 +70,7 @@ export default async function OrdersPage(props: {
                   <td className="px-5 py-3">{o.items}</td>
                   <td className="tnum px-5 py-3 text-right font-medium">{inr(o.amount)}</td>
                   <td className="px-5 py-3"><Pill s={o.payment} /></td>
-                  <td className="px-5 py-3"><Pill s={o.status} /></td>
+                  <td className="px-5 py-3"><OrderStatusSelect id={o.id} currentStatus={o.status} /></td>
                   <td className="px-5 py-3 text-right text-faint"><ChevronRight size={16} /></td>
                 </tr>
               ))}

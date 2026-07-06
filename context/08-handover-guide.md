@@ -1,5 +1,12 @@
 # 08 · Handover Guide (for the next AI agent / developer)
 
+> ⚠️ **Read [09-current-state.md](09-current-state.md) first** — auth (email/password), roles
+> (retailer/distributor shells), and live admin CRUD (`src/app/api/*`) landed after this guide.
+> Quick "where to change X" additions: **mobile auth** → [`auth_provider.dart`](../lib/providers/auth_provider.dart)
+> + `sign_in_screen`/`sign_up_screen`; **who is a distributor** → `AuthProvider.distributorEmail`;
+> **admin auth/guard** → [`proxy.ts`](../admin-next/src/proxy.ts) + `supabase-browser.ts`; **admin writes**
+> → the `src/app/api/*` routes (service_role). Backlog → [`../ROADMAP.md`](../ROADMAP.md).
+
 You're picking up **MY ORDER PRO**. Read [01-overview.md](01-overview.md) first, then this.
 This page is the "where do I look for X" cheat sheet.
 

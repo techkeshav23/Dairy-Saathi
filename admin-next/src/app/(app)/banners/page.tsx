@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Loader2, ImageIcon } from "lucide-react";
 import { banners as seed } from "@/lib/data";
+import ImageInput from "@/components/ImageInput";
 
 type Banner = { id: string; title: string; sub: string; tag: string; color: string; image: string; active: boolean };
 
@@ -158,11 +159,9 @@ export default function BannersPage() {
                 <input value={modal.sub} onChange={(e) => setModal({ ...modal, sub: e.target.value })} placeholder="Basmati • Atta • Oil — bulk rate par"
                   className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
               </label>
-              <label className="block">
-                <span className="mb-1 flex items-center gap-1.5 text-[12px] font-medium text-muted"><ImageIcon size={13} /> Image URL <span className="text-faint">(optional)</span></span>
-                <input value={modal.image} onChange={(e) => setModal({ ...modal, image: e.target.value })} placeholder="https://…/banner.jpg"
-                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
-              </label>
+              <div className="block">
+                <ImageInput value={modal.image} onChange={(url) => setModal({ ...modal, image: url })} placeholder="https://…/banner.jpg" />
+              </div>
               <label className="block">
                 <span className="mb-1 block text-[12px] font-medium text-muted">Tag</span>
                 <select value={modal.tag} onChange={(e) => setModal({ ...modal, tag: e.target.value })}

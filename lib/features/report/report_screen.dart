@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:my_order_pro/common/widgets/ananda_top_bar.dart';
 import 'package:my_order_pro/data/services/analytics_service.dart';
 import 'package:my_order_pro/util/app_colors.dart';
 import 'package:my_order_pro/util/dimensions.dart';
@@ -51,19 +50,15 @@ class _ReportScreenState extends State<ReportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          const AnandaTopBar(),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadData,
-              color: AppColors.primary,
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _buildDashboard(),
-            ),
-          ),
-        ],
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          color: AppColors.primary,
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _buildDashboard(),
+        ),
       ),
     );
   }

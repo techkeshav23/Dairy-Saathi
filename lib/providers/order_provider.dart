@@ -3,10 +3,12 @@ import 'package:my_order_pro/data/models/cart_item.dart';
 import 'package:my_order_pro/data/models/ledger_entry.dart';
 import 'package:my_order_pro/data/models/order.dart';
 import 'package:my_order_pro/data/repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OrderProvider extends ChangeNotifier {
   final Repository repository;
-  OrderProvider({required this.repository});
+  final SharedPreferences prefs;
+  OrderProvider({required this.repository, required this.prefs});
 
   final List<OrderModel> _orders = [];
   List<OrderModel> get orders => List.unmodifiable(_orders);
@@ -18,15 +20,17 @@ class OrderProvider extends ChangeNotifier {
   bool _ledgerLoaded = false;
   bool _ordersLoaded = false;
 
-  /// Demo credit line extended to this retailer (Ananda-style "Credit Limit").
-  final double creditLimit = 50000;
+  /// Dynamic credit limit fetched from the backend (or default 50k).
+  double get creditLimit => prefs.getDouble('saathi_credit_limit') ?? 50000.0;
 
   double get outstanding {
-    double bal = 0;
-    for (final e in _ledger) {
-      bal += e.isDebit ? e.amount : -e.amount;
+    // We add the local session ledger to the server outstanding balance
+    double serverOutstanding = prefs.getDouble('saathi_outstanding') ?? 0.0;
+    double localSessionBal = 0;
+    for (final e in _ledger.where((e) => e.id.startsWith('l_SA'))) {
+      localSessionBal += e.isDebit ? e.amount : -e.amount;
     }
-    return bal;
+    return serverOutstanding + localSessionBal;
   }
 
   /// Remaining credit the retailer can still spend on khata.

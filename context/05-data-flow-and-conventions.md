@@ -1,5 +1,9 @@
 # 05 · Data Flow & Conventions
 
+> ⚠️ **Updated:** the admin no longer relies on the "mock fallback" for the CRUD entities — it reads/writes
+> **live** via server-only `service_role` routes (`src/app/api/*`). Mobile auth is email/password. The
+> Mock↔live conventions below still apply to the mobile catalog. See [09-current-state.md](09-current-state.md).
+
 ## The Mock ↔ Live switch (most important concept)
 
 Both clients run **fully offline on mock data** by default and **auto-upgrade to live

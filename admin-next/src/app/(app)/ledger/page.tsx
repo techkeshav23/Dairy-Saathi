@@ -3,10 +3,19 @@ import { Card, CardHead, Pill } from "@/components/ui";
 import { ledger as mockLedger, recharges } from "@/lib/data";
 import { getLedger } from "@/lib/supabase-data";
 import { useSupabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { inr, inrFull } from "@/lib/format";
+import ManualEntryForm from "@/components/ManualEntryForm";
 
 export default async function LedgerPage() {
   const ledger = useSupabase ? await getLedger() : mockLedger;
+  
+  let retailers: any[] = [];
+  if (useSupabase) {
+    const { data } = await supabaseAdmin.from("app_users").select("id, name:business_name, owner:owner_name").eq("role", "retailer");
+    if (data) retailers = data;
+  }
+
   const debit = ledger.reduce((s, l) => s + l.debit, 0);
   const credit = ledger.reduce((s, l) => s + l.credit, 0);
   const mini = (label: string, val: number, cls: string) => (
@@ -25,7 +34,12 @@ export default async function LedgerPage() {
       </div>
 
       <Card className="overflow-hidden">
-        <CardHead title="Ledger Statement" action={<button className="flex items-center gap-1 text-[13px] font-medium text-info">Export PDF <Download size={14} /></button>} />
+        <CardHead title="Ledger Statement" action={
+          <div className="flex items-center gap-3">
+            <button className="flex items-center gap-1 text-[13px] font-medium text-info hover:underline">Export PDF <Download size={14} /></button>
+            <ManualEntryForm retailers={retailers} />
+          </div>
+        } />
         <div className="overflow-x-auto">
           <table className="w-full text-[13px]">
             <thead>

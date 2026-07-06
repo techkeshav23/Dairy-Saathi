@@ -1,5 +1,9 @@
 # 04 · Supabase Backend (`supabase/`)
 
+> ⚠️ **Updated:** there are now **18 migrations** (v11–v18 add catalog grants, service_role grants,
+> demo seed, retailer accounts, and `role`). Run `schema.sql` → `schema_v18` in order. See
+> **[09-current-state.md](09-current-state.md) §4** for the migration table and the "RLS ≠ GRANTs" lesson.
+
 A multi-tenant PostgreSQL backend. **No app server** — all logic is in RLS policies and
 `SECURITY DEFINER` RPC functions. Run the migrations **in order**: `schema.sql` first,
 then `schema_v2` … `schema_v10`.

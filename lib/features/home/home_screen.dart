@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:my_order_pro/common/widgets/ananda_top_bar.dart';
 import 'package:my_order_pro/common/widgets/balance_strip.dart';
 import 'package:my_order_pro/features/home/widgets/banner_carousel.dart';
 import 'package:my_order_pro/helper/price_converter.dart';
@@ -41,35 +40,31 @@ class _HomeScreenState extends State<HomeScreen> {
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        body: Column(
-          children: [
-            const AnandaTopBar(),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () => context.read<CatalogProvider>().loadHome(),
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault,
-                      Dimensions.paddingSizeDefault, Dimensions.paddingSizeDefault, Dimensions.paddingSizeLarge),
-                  children: [
-                    const _DistributorCard(),
-                    const SizedBox(height: Dimensions.paddingSizeDefault),
-                    
-                    if (isCatalogLoading) ...[
-                      const _CatalogShimmer(),
-                      const SizedBox(height: Dimensions.paddingSizeDefault),
-                    ] else if (catalog.banners.isNotEmpty) ...[
-                      BannerCarousel(banners: catalog.banners),
-                      const SizedBox(height: Dimensions.paddingSizeDefault),
-                    ],
-                    
-                    const _QuickAccessCard(),
-                    const SizedBox(height: Dimensions.paddingSizeDefault),
-                    const _PendingApprovalCard(),
-                  ],
-                ),
+        body: SafeArea(
+          bottom: false,
+          child: RefreshIndicator(
+            onRefresh: () => context.read<CatalogProvider>().loadHome(),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                Dimensions.paddingSizeDefault,
+                Dimensions.paddingSizeDefault,
+                Dimensions.paddingSizeDefault,
+                Dimensions.paddingSizeLarge,
               ),
+              children: [
+                const _DistributorCard(),
+                const SizedBox(height: Dimensions.paddingSizeDefault),
+                if (isCatalogLoading) ...[
+                  const _CatalogShimmer(),
+                  const SizedBox(height: Dimensions.paddingSizeDefault),
+                ] else if (catalog.banners.isNotEmpty) ...[
+                  BannerCarousel(banners: catalog.banners),
+                  const SizedBox(height: Dimensions.paddingSizeDefault),
+                ],
+                const _QuickAccessCard(),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -208,34 +203,6 @@ class _QuickAccessCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _PendingApprovalCard extends StatelessWidget {
-  const _PendingApprovalCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return _whiteCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 26, height: 26,
-                decoration: const BoxDecoration(color: AppColors.tintOrange, shape: BoxShape.circle),
-                child: const Icon(Icons.hourglass_bottom_rounded, color: Color(0xFFE8862E), size: 16),
-              ),
-              const SizedBox(width: 8),
-              Text('Pending Approvals', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
-            ],
-          ),
-          const SizedBox(height: Dimensions.paddingSizeDefault),
-          Text('No pending approvals at the moment.', style: robotoRegular.copyWith(color: AppColors.textLight)),
-        ],
       ),
     );
   }

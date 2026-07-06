@@ -1,5 +1,9 @@
 # 02 · Flutter Mobile App (`lib/`)
 
+> ⚠️ **Updated:** auth is now **email/password + self-signup** (not phone OTP), and the app is
+> **role-based** (retailer shell vs distributor shell). See **[09-current-state.md](09-current-state.md) §1–2**
+> for the current auth/roles. The routes/models/providers/theme below remain accurate.
+
 The retailer-facing app. 98 Dart files, 39 screens. Entry point: [`lib/main.dart`](../lib/main.dart).
 
 ## Boot sequence (`main.dart`)

@@ -22,9 +22,13 @@ export async function GET() {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   const rows = (data ?? []).map((p: any) => {
     const cat = Array.isArray(p.categories) ? p.categories[0]?.name : p.categories?.name;
-    const prices = (p.price_slabs ?? []).map((s: any) => Number(s.price_per_unit)).filter((n: number) => n > 0);
+    const slabs = (p.price_slabs ?? []).map((s: any) => ({
+      min_qty: Number(s.min_qty),
+      price_per_unit: Number(s.price_per_unit),
+    })).sort((a: any, b: any) => a.min_qty - b.min_qty);
+    const prices = slabs.map((s: any) => s.price_per_unit).filter((n: number) => n > 0);
     const rate = prices.length ? Math.min(...prices) : Number(p.mrp);
-    return { id: p.id, name: p.name || "", cat: cat || "Uncategorized", mrp: Number(p.mrp) || 0, rate: rate || 0, resale: Number(p.mrp) || 0, moq: p.moq || 1, stock: p.stock || 0, pack: p.unit || "1 unit", image: p.image_url || "" };
+    return { id: p.id, name: p.name || "", cat: cat || "Uncategorized", mrp: Number(p.mrp) || 0, rate: rate || 0, resale: Number(p.mrp) || 0, moq: p.moq || 1, stock: p.stock || 0, pack: p.unit || "1 unit", image: p.image_url || "", slabs };
   });
   return NextResponse.json(rows);
 }
@@ -35,6 +39,7 @@ export async function POST(req: NextRequest) {
   if (!b?.name?.trim()) return NextResponse.json({ error: "Name required" }, { status: 400 });
   const id = "prd_" + Date.now().toString(36);
   const cid = await resolveCategoryId(b.cat);
+  if (!cid) return NextResponse.json({ error: "Category required" }, { status: 400 });
   const { error } = await supabaseAdmin.from("products").insert({
     id, name: b.name, brand: b.brand ?? "", category_id: cid, unit: b.pack ?? "1 unit",
     mrp: Number(b.mrp) || 0, moq: Number(b.moq) || 1, stock: Number(b.stock) || 0,
@@ -42,7 +47,10 @@ export async function POST(req: NextRequest) {
     is_popular: false, is_featured: false, description: b.description ?? "",
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (Number(b.rate) > 0) {
+  if (b.slabs && Array.isArray(b.slabs) && b.slabs.length > 0) {
+    const toInsert = b.slabs.map((s: any) => ({ product_id: id, min_qty: Number(s.min_qty) || 1, price_per_unit: Number(s.price_per_unit) || 0 }));
+    await supabaseAdmin.from("price_slabs").insert(toInsert);
+  } else if (Number(b.rate) > 0) {
     await supabaseAdmin.from("price_slabs").insert({ product_id: id, min_qty: 1, price_per_unit: Number(b.rate) });
   }
   return NextResponse.json({ ok: true, id });
@@ -53,14 +61,18 @@ export async function PATCH(req: NextRequest) {
   const b = await req.json();
   if (!b?.id) return NextResponse.json({ error: "id required" }, { status: 400 });
   const cid = await resolveCategoryId(b.cat);
+  if (!cid) return NextResponse.json({ error: "Category required" }, { status: 400 });
   const { error } = await supabaseAdmin.from("products").update({
     name: b.name, category_id: cid, unit: b.pack ?? "1 unit",
     mrp: Number(b.mrp) || 0, moq: Number(b.moq) || 1, stock: Number(b.stock) || 0,
     image_url: (b.image && String(b.image).trim()) || "",
   }).eq("id", b.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (Number(b.rate) > 0) {
-    await supabaseAdmin.from("price_slabs").delete().eq("product_id", b.id);
+  await supabaseAdmin.from("price_slabs").delete().eq("product_id", b.id);
+  if (b.slabs && Array.isArray(b.slabs) && b.slabs.length > 0) {
+    const toInsert = b.slabs.map((s: any) => ({ product_id: b.id, min_qty: Number(s.min_qty) || 1, price_per_unit: Number(s.price_per_unit) || 0 }));
+    await supabaseAdmin.from("price_slabs").insert(toInsert);
+  } else if (Number(b.rate) > 0) {
     await supabaseAdmin.from("price_slabs").insert({ product_id: b.id, min_qty: 1, price_per_unit: Number(b.rate) });
   }
   return NextResponse.json({ ok: true });

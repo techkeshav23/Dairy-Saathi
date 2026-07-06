@@ -130,10 +130,11 @@ class _OrderRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final status = order.status == OrderStatus.delivered ? 'Delivered'
-        : order.status == OrderStatus.cancelled ? 'Cancelled' : 'Invoiced';
+    final status = order.status.label;
     final statusColor = order.status == OrderStatus.delivered ? AppColors.success
-        : order.status == OrderStatus.cancelled ? AppColors.error : AppColors.warning;
+        : order.status == OrderStatus.cancelled ? AppColors.error
+        : (order.status == OrderStatus.placed || order.status == OrderStatus.confirmed) ? AppColors.warning
+        : AppColors.link;
     return InkWell(
       onTap: () => Navigator.pushNamed(context, RouteHelper.orderDetail, arguments: order),
       child: Padding(

@@ -2,21 +2,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, Plus, X, Pencil, Trash2, Loader2, Image as ImageIcon } from "lucide-react";
 import { Card, Pill } from "@/components/ui";
-import { products as mockProducts, stockStatus } from "@/lib/data";
-import { supabase } from "@/lib/supabase";
+import ImageInput from "@/components/ImageInput";
+import { stockStatus } from "@/lib/data";
 import { inr } from "@/lib/format";
 
-type P = { id: string; name: string; cat: string; mrp: number; rate: number; resale: number; moq: number; stock: number; pack: string; image: string };
+type P = { id: string; name: string; cat: string; mrp: number; rate: number; resale: number; moq: number; stock: number; pack: string; image: string; slabs?: { min_qty: number; price_per_unit: number }[] };
 
 const TINTS = [["#eef2fe", "#2b50d6"], ["#faf0dc", "#c07708"], ["#e6f6ee", "#0f9d63"], ["#f1f3f7", "#586172"]];
-const BLANK: P = { id: "", name: "", cat: "", mrp: 0, rate: 0, resale: 0, moq: 1, stock: 0, pack: "1 EA", image: "" };
-const FALLBACK_CATS = ["Groceries & Staples", "Beverages", "Snacks & Namkeen", "Personal Care", "Home Care", "Dairy & Bakery", "Packaged Food", "Stationery"];
+const BLANK: P = { id: "", name: "", cat: "", mrp: 0, rate: 0, resale: 0, moq: 1, stock: 0, pack: "1 EA", image: "", slabs: [{ min_qty: 1, price_per_unit: 0 }] };
 
 export default function ProductsPage() {
   const [q, setQ] = useState("");
   const [catFilter, setCatFilter] = useState("All");
   const [list, setList] = useState<P[]>([]);
-  const [cats, setCats] = useState<string[]>(FALLBACK_CATS);
+  const [cats, setCats] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<P | null>(null);
   const [saving, setSaving] = useState(false);
@@ -26,24 +25,27 @@ export default function ProductsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/products", { cache: "no-store" });
-      const data = await res.json();
-      if (Array.isArray(data) && data.length) setList(data);
-      else setList(mockProducts.map((p, i) => ({ ...p, id: "mock_" + i, image: "" })));
+      const [productsRes, categoriesRes] = await Promise.all([
+        fetch("/api/products", { cache: "no-store" }),
+        fetch("/api/categories", { cache: "no-store" }),
+      ]);
+      const productsData = await productsRes.json();
+      const categoriesData = await categoriesRes.json();
+      setList(productsRes.ok && Array.isArray(productsData) ? productsData : []);
+      setCats(
+        categoriesRes.ok && Array.isArray(categoriesData)
+          ? categoriesData.map((c: { name?: string }) => c.name).filter(Boolean).sort()
+          : []
+      );
     } catch {
-      setList(mockProducts.map((p, i) => ({ ...p, id: "mock_" + i, image: "" })));
+      setList([]);
+      setCats([]);
     }
     setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
-    if (supabase) {
-      supabase.from("categories").select("name").order("name").then(({ data }) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (data && data.length) setCats((data as any[]).map((c) => c.name));
-      });
-    }
   }, [load]);
 
   const rows = useMemo(() => list.filter((p) =>
@@ -51,10 +53,11 @@ export default function ProductsPage() {
     (p.name + p.cat).toLowerCase().includes(q.toLowerCase())
   ), [q, list, catFilter]);
 
-  const openNew = () => { setErr(""); setModal({ ...BLANK, cat: cats[0] || "" }); };
+  const openNew = () => { setErr(""); setModal({ ...BLANK, cat: cats[0] || "", slabs: [{ min_qty: 1, price_per_unit: 0 }] }); };
 
   const save = async () => {
     if (!modal || !modal.name.trim()) { setErr("Product name is required"); return; }
+    if (!modal.cat.trim()) { setErr("Create or select a category first"); return; }
     setSaving(true); setErr("");
     const isEdit = !!modal.id && !modal.id.startsWith("mock_");
     try {
@@ -149,7 +152,7 @@ export default function ProductsPage() {
                       <td className="px-5 py-3"><Pill s={stockStatus(p.stock)} /></td>
                       <td className="px-5 py-3">
                         <div className="flex justify-end gap-2.5 text-faint opacity-0 transition-opacity group-hover:opacity-100">
-                          <button onClick={() => { setErr(""); setModal({ ...p }); }} title="Edit"><Pencil size={15} className="hover:text-brand" /></button>
+                          <button onClick={() => { setErr(""); setModal({ ...p, slabs: p.slabs?.length ? p.slabs : [{ min_qty: 1, price_per_unit: p.rate || 0 }] }); }} title="Edit"><Pencil size={15} className="hover:text-brand" /></button>
                           <button onClick={() => del(p.id)} title="Delete"><Trash2 size={15} className="hover:text-danger" /></button>
                         </div>
                       </td>
@@ -185,17 +188,15 @@ export default function ProductsPage() {
                 </select>
               </label>
               <div className="col-span-2 flex items-end gap-3">
-                <label className="block flex-1">
-                  <span className="mb-1 flex items-center gap-1.5 text-[12px] font-medium text-muted"><ImageIcon size={13} /> Image URL <span className="text-faint">(optional)</span></span>
-                  <input value={modal.image} onChange={(e) => setModal({ ...modal, image: e.target.value })} placeholder="https://…/product.jpg"
-                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
-                </label>
+                <div className="flex-1">
+                  <ImageInput value={modal.image} onChange={(url) => setModal({ ...modal, image: url })} placeholder="https://…/product.jpg" />
+                </div>
                 {modal.image
                   ? // eslint-disable-next-line @next/next/no-img-element
                     <img src={modal.image} alt="" className="h-10 w-10 shrink-0 rounded-lg border border-border object-cover" />
                   : <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-dashed border-border text-faint"><ImageIcon size={16} /></div>}
               </div>
-              {(["mrp", "rate", "resale", "moq", "stock", "pack"] as (keyof P)[]).map((key) => (
+              {(["mrp", "resale", "moq", "stock", "pack"] as (keyof P)[]).map((key) => (
                 <label key={key} className="block">
                   <span className="mb-1 block text-[12px] font-medium capitalize text-muted">{key === "pack" ? "Pack" : key}</span>
                   <input
@@ -205,6 +206,32 @@ export default function ProductsPage() {
                     className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
                 </label>
               ))}
+              
+              <div className="col-span-2 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="block text-[12px] font-medium text-muted">Pricing Tiers (Bulk Slabs)</span>
+                  <button type="button" onClick={() => setModal({ ...modal, slabs: [...(modal.slabs || []), { min_qty: 1, price_per_unit: 0 }] })} className="text-[11px] font-medium text-brand hover:underline">+ Add Tier</button>
+                </div>
+                {(modal.slabs || [{ min_qty: 1, price_per_unit: modal.rate || 0 }]).map((slab, idx, arr) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="relative w-1/2">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted">Qty ≥</span>
+                      <input type="number" value={slab.min_qty} onChange={(e) => {
+                        const s = [...arr]; s[idx].min_qty = Number(e.target.value) || 0; setModal({ ...modal, slabs: s });
+                      }} className="w-full rounded-lg border border-border bg-card py-2 pl-12 pr-3 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
+                    </div>
+                    <div className="relative w-1/2">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted">₹</span>
+                      <input type="number" value={slab.price_per_unit} onChange={(e) => {
+                        const s = [...arr]; s[idx].price_per_unit = Number(e.target.value) || 0; setModal({ ...modal, slabs: s });
+                      }} className="w-full rounded-lg border border-border bg-card py-2 pl-8 pr-3 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
+                    </div>
+                    <button type="button" onClick={() => {
+                      if (arr.length > 1) { const s = [...arr]; s.splice(idx, 1); setModal({ ...modal, slabs: s }); }
+                    }} disabled={arr.length <= 1} className="p-1 text-muted hover:text-danger disabled:opacity-30"><Trash2 size={16} /></button>
+                  </div>
+                ))}
+              </div>
               {err && <p className="col-span-2 text-[12px] font-medium text-danger">{err}</p>}
             </div>
             <div className="flex gap-3 px-5 pb-5">

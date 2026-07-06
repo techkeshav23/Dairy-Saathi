@@ -1,13 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:my_order_pro/util/app_colors.dart';
 import 'package:my_order_pro/common/widgets/powered_by_codeblimp.dart';
 import 'package:my_order_pro/features/parties/parties_screen.dart';
+import 'package:my_order_pro/providers/auth_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDistributor = context.watch<AuthProvider>().isDistributor;
+
+    if (!isDistributor) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text(
+            'Settings',
+            style: TextStyle(
+              color: AppColors.textDark,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          backgroundColor: AppColors.card,
+          surfaceTintColor: Colors.transparent,
+          elevation: 1,
+          shadowColor: Colors.black.withValues(alpha: 0.05),
+          iconTheme: const IconThemeData(color: AppColors.textDark),
+        ),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Text(
+              'Business settings are available only for distributor accounts.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textMedium,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(

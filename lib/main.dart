@@ -80,7 +80,7 @@ class _MyOrderProAppState extends State<MyOrderProApp> {
         ChangeNotifierProvider(create: (_) => AuthProvider(repository: widget.repository, prefs: widget.prefs)..loadUser()),
         ChangeNotifierProvider(create: (_) => CatalogProvider(repository: widget.repository)),
         ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(create: (_) => OrderProvider(repository: widget.repository)),
+        ChangeNotifierProvider(create: (_) => OrderProvider(repository: widget.repository, prefs: widget.prefs)),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

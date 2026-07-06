@@ -1,6 +1,16 @@
 # 07 · Known Issues, Gaps & TODOs
 
-Snapshot as of **2026-07-03**. Verify against current code before acting — some may be fixed.
+> ⚠️ **This file is the ORIGINAL (2026-07-03) snapshot — much of it is now resolved.**
+> For the current gaps + prioritized plan, use **[`../ROADMAP.md`](../ROADMAP.md)**, and for the
+> current architecture use **[`09-current-state.md`](09-current-state.md)**.
+>
+> **Resolved since:** admin now has **real auth** (no more mock login); **orders/retailers/products/
+> categories/banners are live CRUD** (no longer mock); **admin ↔ schema mismatch fixed** (v17);
+> Supabase **role grants** fixed (v12/v15); dashboard **charts live**; mobile auth is **email/password**
+> (phone-OTP removed); app is **role-based** (retailer vs distributor). The "DAIRY DEMO" branding is
+> gone (now MY ORDER PRO). Still open: order lifecycle/status, payments wiring, notifications — see ROADMAP.
+
+Snapshot as of **2026-07-03** (below — historical). Verify against current code before acting.
 
 ## 🔴 Security / correctness
 

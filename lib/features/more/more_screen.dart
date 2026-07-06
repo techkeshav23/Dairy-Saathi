@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:my_order_pro/common/widgets/ananda_top_bar.dart';
 import 'package:my_order_pro/helper/route_helper.dart';
 import 'package:my_order_pro/providers/auth_provider.dart';
 import 'package:my_order_pro/util/app_colors.dart';
@@ -15,15 +14,18 @@ class MoreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDistributor = context.watch<AuthProvider>().isDistributor;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          const AnandaTopBar(),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-              children: [
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+                children: [
                 Text('Statement & Wallet', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraLarge)),
                 const SizedBox(height: Dimensions.paddingSizeDefault),
                 Row(
@@ -40,8 +42,9 @@ class MoreScreen extends StatelessWidget {
                 _sectionHeader('Profile'),
                 const SizedBox(height: Dimensions.paddingSizeSmall),
                 _card([
-                  _row(context, Icons.settings_outlined, 'Settings',
-                      () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()))),
+                  if (isDistributor)
+                    _row(context, Icons.settings_outlined, 'Business Settings',
+                        () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()))),
                   _row(context, Icons.manage_accounts_outlined, 'Account and Preferences',
                       () => Navigator.pushNamed(context, RouteHelper.accountPreferences)),
                   _row(context, Icons.help_outline, 'Help', () => _toast(context, 'Help — demo')),
@@ -56,13 +59,13 @@ class MoreScreen extends StatelessWidget {
                       trailing: const Icon(Icons.logout, color: AppColors.primary, size: 22)),
                 ]),
                 const SizedBox(height: Dimensions.paddingSizeLarge),
-              ],
+                ],
+              ),
             ),
-          ),
-        
-          const SizedBox(height: 24),
-          const PoweredByCodeBlimp(),
-        ],
+            const SizedBox(height: 24),
+            const PoweredByCodeBlimp(),
+          ],
+        ),
       ),
     );
   }

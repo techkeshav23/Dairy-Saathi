@@ -152,6 +152,12 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setString(AppConstants.shopName, (row['business_name'] ?? row['shop_name'] ?? 'My Shop').toString());
       await prefs.setString('saathi_gstin', (row['gst'] ?? '').toString());
       if (row['phone'] != null) await prefs.setString(AppConstants.userPhone, row['phone'].toString());
+      if (row['credit_limit'] != null) {
+        await prefs.setDouble('saathi_credit_limit', (row['credit_limit'] as num).toDouble());
+      }
+      if (row['outstanding_balance'] != null) {
+        await prefs.setDouble('saathi_outstanding', (row['outstanding_balance'] as num).toDouble());
+      }
     }
     final email = _sb.auth.currentUser?.email?.toLowerCase() ?? '';
     final dbRole = (row?['role'] ?? 'retailer').toString();

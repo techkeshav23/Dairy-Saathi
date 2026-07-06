@@ -96,7 +96,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 Center(child: const AppLogo(size: 64)),
                 const SizedBox(height: 20),
-                Text('Create your account', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge)),
+                Text('Create retailer account', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge)),
                 const SizedBox(height: 6),
                 Text('Register your shop and start ordering at wholesale rates.',
                     style: robotoRegular.copyWith(color: AppColors.textMedium, fontSize: Dimensions.fontSizeDefault)),

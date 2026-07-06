@@ -1,5 +1,10 @@
 # 03 · Next.js Admin Console (`admin-next/`)
 
+> ⚠️ **Updated:** the admin now has **real email/password auth** (proxy-guarded), **live CRUD** for
+> retailers/products/categories/banners via `src/app/api/*` (service_role), live dashboard charts, and a
+> **cobalt/graphite** redesign (was red). "Mock/demo" notes below are historical — see
+> **[09-current-state.md](09-current-state.md) §1, §3**.
+
 The wholesaler/distributor-facing web dashboard. Next.js 16 App Router, React 19,
 Tailwind 4, TypeScript.
 

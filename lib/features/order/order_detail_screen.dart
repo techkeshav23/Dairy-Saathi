@@ -30,6 +30,30 @@ class OrderDetailScreen extends StatelessWidget {
         title: Text('Order #${order.id}', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
         actions: [
           IconButton(
+            icon: const Icon(Icons.download),
+            tooltip: 'Download Bill',
+            onPressed: () async {
+              await PdfInvoiceHelper.printInvoice(
+                docTitle: 'TAX INVOICE',
+                invoiceNo: order.id.toString(),
+                date: order.placedAt,
+                partyName: 'Customer',
+                partyAddress: order.address,
+                items: order.lines.map((line) => {
+                  'name': line.name,
+                  'hsn': '',
+                  'qty': line.quantity,
+                  'rate': line.unitPrice,
+                  'amount': line.total,
+                }).toList(),
+                subtotal: order.subtotal.toDouble(),
+                cgst: 0,
+                sgst: 0,
+                total: order.total.toDouble(),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.share),
             tooltip: 'Share Bill',
             onPressed: () async {

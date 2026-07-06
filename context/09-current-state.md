@@ -1,0 +1,118 @@
+# 09 · Current State (authoritative — read this first)
+
+> **This doc supersedes the auth / roles / admin-CRUD details in 02–04 where they conflict.**
+> Docs 01–08 describe the original build; this captures the major changes since.
+> Last updated **2026-07-05**.
+
+The platform is now a **role-based single mobile app + a real-auth admin console**, both on
+live Supabase with real CRUD. Below is exactly how it works today.
+
+---
+
+## 1. Authentication (rewritten — no more phone OTP)
+
+**Mobile app** — **email + password** via Supabase Auth (`supabase_flutter`):
+- Retailers **self sign-up** in the app (email, password, shop name, owner, phone, area, GST) →
+  instant, no approval → an `app_users` profile row is created (`created_by='self'`, `role='retailer'`).
+- Or a retailer signs in with a login the **distributor created** for them in the admin.
+- Files: [`lib/providers/auth_provider.dart`](../lib/providers/auth_provider.dart) (`signIn`, `signUp`),
+  [`lib/features/auth/sign_in_screen.dart`](../lib/features/auth/sign_in_screen.dart),
+  [`lib/features/auth/sign_up_screen.dart`](../lib/features/auth/sign_up_screen.dart).
+- **Removed:** phone OTP, `verify_otp_screen.dart`. (`Repository.requestOtp/verifyOtp` remain as dead interface methods.)
+- ⚠️ **Supabase setting:** for instant self-signup, **"Confirm email" must be OFF** (Auth → Providers → Email).
+
+**Admin console** — **email + password** via `@supabase/ssr` (cookie sessions):
+- Login: [`admin-next/src/app/login/page.tsx`](../admin-next/src/app/login/page.tsx) → `signInWithPassword`.
+- **Route guard:** [`admin-next/src/proxy.ts`](../admin-next/src/proxy.ts) (Next.js 16 "proxy", formerly middleware) —
+  every page **and** `/api/*` requires a session, else redirect to `/login`.
+- Clients: [`supabase-browser.ts`](../admin-next/src/lib/supabase-browser.ts) (auth),
+  [`supabase-admin.ts`](../admin-next/src/lib/supabase-admin.ts) (service_role, server-only writes).
+- The demo admin user: **`admin@admin.com`** (create/manage in Supabase → Authentication → Users).
+
+---
+
+## 2. Roles — one app, two experiences
+
+`app_users.role` = `'retailer'` (default) or `'distributor'`. The mobile app resolves the role on
+login and shows a different shell:
+
+| Role | Shell | Contents |
+|------|-------|----------|
+| **retailer** | [`DashboardScreen`](../lib/features/dashboard/dashboard_screen.dart) | Lean 4-tab: **Home · Orders · Khata · Account** |
+| **distributor** | [`DistributorDashboard`](../lib/features/dashboard/distributor_dashboard.dart) | **Dashboard + drawer** (Parties, Sale, Purchase, Expense, Cash & Bank, Items, Online Store, Sync, Backup) + **POS** |
+
+**Who is a distributor:** the configured owner email **OR** any account with `role='distributor'` in the DB.
+- Config email: `AuthProvider.distributorEmail` = **`admin@admin.com`** ([`auth_provider.dart`](../lib/providers/auth_provider.dart)).
+- So by default there is **one distributor** (the owner). Set `role='distributor'` on another `app_users`
+  row in Supabase to add more — no rebuild needed.
+- Routing: `RouteHelper.homeFor(isDistributor)` used by sign-in + splash (splash re-fetches the role each launch).
+- The distributor drawer lives in [`app_drawer.dart`](../lib/common/widgets/app_drawer.dart); `AnandaTopBar`
+  shows a hamburger only when a drawer is present.
+
+> The distributor's accounting screens are Vyapar-style and **scoped to the distributor's own uid** (RLS),
+> i.e. their own books — separate from retailers' data.
+
+---
+
+## 3. Admin console — now fully live CRUD
+
+All admin data is live from Supabase via **server-only `service_role`** (RLS-bypassing) API routes /
+server components. Enterprise redesign: **dark sidebar + cobalt accent** (see 03 for the design system,
+but note the palette moved from red → cobalt/graphite).
+
+| Area | Status | Backing |
+|------|--------|---------|
+| Dashboard (KPIs + **charts** + recent orders) | ✅ live | `supabase-data.ts` (service_role) |
+| Orders | ✅ live (list) — status update still TODO | `getOrders` |
+| **Retailers** | ✅ **CRUD** — create (auth login + profile), edit, block, delete, role | [`/api/retailers`](../admin-next/src/app/api/retailers/route.ts) |
+| **Products** | ✅ **CRUD** + image + category filter | [`/api/products`](../admin-next/src/app/api/products/route.ts) |
+| **Categories** | ✅ **CRUD** | [`/api/categories`](../admin-next/src/app/api/categories/route.ts) |
+| **Banners** | ✅ **CRUD** + image + colour-overlay toggle | [`/api/banners`](../admin-next/src/app/api/banners/route.ts) |
+| Ledger / Reports / Purchase / Settings | ⚠️ partly mock / read-only | — |
+
+- **Add Retailer** = `supabaseAdmin.auth.admin.createUser()` (email+password, pre-confirmed) **+** `app_users`
+  profile insert (rolls back the auth user if the profile fails). That login then works in the mobile app.
+- Client pages fetch these `/api/*` routes; the **proxy gates them behind admin login**.
+
+---
+
+## 4. Backend — migrations & mechanics
+
+Run `schema.sql` → `schema_v18` **in order**. Migrations **v11–v18** (added this phase):
+
+| File | Purpose |
+|------|---------|
+| `schema_v11_public_catalog_read.sql` | anon read grants for catalog (fixed blank Place Order) |
+| `schema_v12_fix_role_grants.sql` | table GRANTs for `anon` + `authenticated` (RLS ≠ grants) |
+| `schema_v13_demo_seed.sql` | banners + per-user demo data (orders/ledger/parties/invoices…) |
+| `schema_v14_rich_ledger.sql` | ~28 rich ledger rows/user for a full Statement |
+| `schema_v15_service_role_grants.sql` | **GRANTs for `service_role`** — the admin read fix |
+| `schema_v16_product_images.sql` | product images loremflickr → reliable picsum |
+| `schema_v17_retailer_accounts.sql` | enrich `app_users` (email, business_name, owner_name, area, credit_limit, status, code, created_by) |
+| `schema_v18_user_roles.sql` | `app_users.role` (retailer/distributor) |
+
+- **Key lesson baked into the migrations:** in Supabase, **RLS policies are not enough — every role
+  (`anon`, `authenticated`, `service_role`) also needs table-level `GRANT`s.** Missing grants = SQLSTATE
+  42501 "permission denied for table" even for service_role.
+- Catalog (categories/products/price_slabs/banners) is **public-read**; user/business tables are **owner-only**
+  (`user_id = auth.uid()`); `service_role` bypasses RLS (used by the admin).
+- Live project ref: `hkvbietffnfuecxwwsni`. Mobile ships the **publishable** key; the **service_role** key is
+  in `admin-next/.env.local` only (gitignored — never commit it).
+
+---
+
+## 5. What's next
+
+The full prioritized backlog is in **[`../ROADMAP.md`](../ROADMAP.md)** (P0 core commerce → P2 CRM depth).
+Biggest open gaps: order lifecycle/status, payments & credit wiring, notifications, and the CRM features
+(retailer 360, segments, follow-ups, collections, analytics).
+
+---
+
+## 6. Run / build reminders
+
+- Mobile & admin **must build from a path without `&`/spaces** — the repo lives under `…\Distributor & Retailer`,
+  so a clean copy at **`C:\my_order_pro`** is used for `flutter`/`npm`. Edits are made in the repo and synced.
+- Admin dev: `cd C:\my_order_pro\admin-next && npm run dev` (needs `.env.local` with URL + anon + **service_role**).
+- Mobile release APK: `flutter build apk --release --split-per-abi --no-tree-shake-icons` (the icon flag is
+  required — category icons are built dynamically). Release arm64 ≈ 24 MB (debug is ~194 MB).

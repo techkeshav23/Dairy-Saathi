@@ -1,5 +1,10 @@
 # 06 · Setup, Run & Build
 
+> ⚠️ **Updated:** auth is **email/password** now. For instant retailer self-signup, turn **OFF**
+> Supabase → Auth → Providers → Email → **"Confirm email"**. The admin needs `SUPABASE_SERVICE_ROLE_KEY`
+> in `admin-next/.env.local` (server-only) for live data. Release APK needs `--no-tree-shake-icons`.
+> See [09-current-state.md](09-current-state.md) §6. Build still requires a clean path (no `&`/spaces).
+
 ## Prerequisites
 - **Flutter SDK** `^3.11.5` (Dart), Android Studio / Xcode toolchains.
 - **Node.js** 20+ and npm (for the admin console).
