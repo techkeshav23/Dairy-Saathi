@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, Plus, X, Pencil, Trash2, Loader2, Ban, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui";
 import { inr } from "@/lib/format";
+import Link from "next/link";
 
 type R = {
   id: string; code: string; name: string; owner: string; area: string; phone: string;
@@ -100,7 +101,10 @@ export default function RetailersPage() {
                 {rows.map((r) => (
                   <tr key={r.id} className="group border-b border-border2 last:border-0 hover:bg-card2">
                     <td className="px-5 py-3 font-semibold">#{r.code}</td>
-                    <td className="px-5 py-3">{r.name}<div className="text-[11px] text-faint">{r.owner}</div></td>
+                    <td className="px-5 py-3">
+                      <Link href={`/retailers/${r.id}`} className="font-medium hover:text-brand hover:underline">{r.name}</Link>
+                      <div className="text-[11px] text-faint">{r.owner}</div>
+                    </td>
                     <td className="px-5 py-3 text-muted">{r.phone || "—"}<div className="text-[11px] text-faint">{r.email}</div></td>
                     <td className="px-5 py-3 text-muted">{r.area || "—"}</td>
                     <td className="tnum px-5 py-3 text-right">{inr(r.limit)}</td>
