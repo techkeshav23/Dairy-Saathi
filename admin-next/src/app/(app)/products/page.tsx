@@ -88,11 +88,22 @@ export default function ProductsPage() {
     }
     
     setDeleting(true);
+    setErr("");
     try {
-      await fetch("/api/products", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
-      await load();
+      const res = await fetch("/api/products", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+      if (!res.ok) {
+        const j = await res.json();
+        // If it's a foreign key error, give a friendly message
+        if (j.error?.includes("violates foreign key constraint")) {
+          alert("Cannot delete this product because it is part of existing orders. Please change its stock to 0 instead.");
+        } else {
+          alert("Failed to delete product: " + (j.error || "Unknown error"));
+        }
+      } else {
+        await load();
+      }
     } catch {
-      // ignore
+      alert("Network error while deleting product.");
     } finally {
       setDeleting(false);
       setDeleteConfirm(null);
