@@ -11,6 +11,10 @@ export default async function Retailer360Page(props: { params: Promise<{ id: str
   const retailerId = params.id;
 
   // Fetch Retailer Profile
+  if (!supabaseAdmin) {
+    return <div className="p-10 text-center text-muted">Admin not configured. Please add SUPABASE_SERVICE_ROLE_KEY to .env.local</div>;
+  }
+
   const { data: user } = await supabaseAdmin
     .from("app_users")
     .select("*")

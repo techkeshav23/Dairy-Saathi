@@ -11,7 +11,7 @@ export default async function LedgerPage() {
   const ledger = useSupabase ? await getLedger() : mockLedger;
   
   let retailers: any[] = [];
-  if (useSupabase) {
+  if (useSupabase && supabaseAdmin) {
     const { data } = await supabaseAdmin.from("app_users").select("id, name:business_name, owner:owner_name").eq("role", "retailer");
     if (data) retailers = data;
   }
