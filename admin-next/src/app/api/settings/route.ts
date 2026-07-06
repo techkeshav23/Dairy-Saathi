@@ -3,6 +3,9 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function GET() {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Admin not configured" }, { status: 503 });
+    }
     const { data, error } = await supabaseAdmin
       .from("store_settings")
       .select("*")
@@ -20,6 +23,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Admin not configured" }, { status: 503 });
+    }
     const body = await req.json();
 
     const { error } = await supabaseAdmin

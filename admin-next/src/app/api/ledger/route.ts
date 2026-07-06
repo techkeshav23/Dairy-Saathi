@@ -3,6 +3,10 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(req: Request) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Admin not configured" }, { status: 503 });
+    }
+
     const { user_id, amount, type, note } = await req.json();
 
     if (!user_id || !amount || !type || !note) {
