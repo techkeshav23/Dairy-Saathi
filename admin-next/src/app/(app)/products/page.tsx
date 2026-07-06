@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, Plus, X, Pencil, Trash2, Loader2, Image as ImageIcon } from "lucide-react";
 import { Card, Pill } from "@/components/ui";
 import ImageInput from "@/components/ImageInput";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { stockStatus } from "@/lib/data";
 import { inr } from "@/lib/format";
 
@@ -21,6 +22,8 @@ export default function ProductsPage() {
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
   const [broken, setBroken] = useState<Record<string, boolean>>({});
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -74,11 +77,26 @@ export default function ProductsPage() {
     }
   };
 
-  const del = async (id: string) => {
-    if (id.startsWith("mock_")) { setList((p) => p.filter((x) => x.id !== id)); return; }
-    if (!confirm("Delete this product?")) return;
-    await fetch("/api/products", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
-    await load();
+  const del = async () => {
+    if (!deleteConfirm) return;
+    const id = deleteConfirm;
+    
+    if (id.startsWith("mock_")) { 
+      setList((p) => p.filter((x) => x.id !== id)); 
+      setDeleteConfirm(null);
+      return; 
+    }
+    
+    setDeleting(true);
+    try {
+      await fetch("/api/products", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+      await load();
+    } catch {
+      // ignore
+    } finally {
+      setDeleting(false);
+      setDeleteConfirm(null);
+    }
   };
 
   // Create a new category inline (from the product modal) and select it.
@@ -153,7 +171,7 @@ export default function ProductsPage() {
                       <td className="px-5 py-3">
                         <div className="flex justify-end gap-2.5 text-faint opacity-0 transition-opacity group-hover:opacity-100">
                           <button onClick={() => { setErr(""); setModal({ ...p, slabs: p.slabs?.length ? p.slabs : [{ min_qty: 1, price_per_unit: p.rate || 0 }] }); }} title="Edit"><Pencil size={15} className="hover:text-brand" /></button>
-                          <button onClick={() => del(p.id)} title="Delete"><Trash2 size={15} className="hover:text-danger" /></button>
+                          <button onClick={() => setDeleteConfirm(p.id)} title="Delete"><Trash2 size={15} className="hover:text-danger" /></button>
                         </div>
                       </td>
                     </tr>
@@ -173,7 +191,7 @@ export default function ProductsPage() {
               <h3 className="text-[15px] font-semibold text-fg">{modal.id && !modal.id.startsWith("mock_") ? "Edit Product" : "Add Product"}</h3>
               <button onClick={() => setModal(null)} className="grid h-8 w-8 place-items-center rounded-lg bg-card2 text-muted"><X size={16} /></button>
             </div>
-            <div className="grid grid-cols-2 gap-4 p-5">
+            <div className="grid grid-cols-2 gap-4 p-5 max-h-[70vh] overflow-y-auto">
               <label className="col-span-2 block">
                 <span className="mb-1 block text-[12px] font-medium text-muted">Product Name</span>
                 <input value={modal.name} onChange={(e) => setModal({ ...modal, name: e.target.value })} placeholder="India Gate Basmati Rice 5kg"
@@ -243,6 +261,16 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Delete Product"
+        desc="Are you sure you want to delete this product? This action cannot be undone."
+        confirmText="Delete"
+        loading={deleting}
+        onConfirm={del}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

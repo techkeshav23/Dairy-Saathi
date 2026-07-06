@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Loader2, Tag } from "lucide-react";
 import { Card } from "@/components/ui";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 type Cat = { id: string; name: string; color: string; count: number };
 const BLANK: Cat = { id: "", name: "", color: "#2b50d6", count: 0 };
@@ -12,6 +13,8 @@ export default function CategoriesPage() {
   const [modal, setModal] = useState<Cat | null>(null);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState<Cat | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -40,10 +43,18 @@ export default function CategoriesPage() {
     } catch { setErr("Network error"); setSaving(false); }
   };
 
-  const del = async (c: Cat) => {
-    if (!confirm(`Delete "${c.name}"? Its ${c.count} product(s) will become Uncategorized.`)) return;
-    await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: c.id }) });
-    await load();
+  const del = async () => {
+    if (!deleteConfirm) return;
+    setDeleting(true);
+    try {
+      await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: deleteConfirm.id }) });
+      await load();
+    } catch {
+      // ignore
+    } finally {
+      setDeleting(false);
+      setDeleteConfirm(null);
+    }
   };
 
   return (
@@ -71,7 +82,7 @@ export default function CategoriesPage() {
               </div>
               <div className="flex gap-2 text-faint">
                 <button onClick={() => { setErr(""); setModal({ ...c }); }} title="Edit"><Pencil size={15} className="hover:text-brand" /></button>
-                <button onClick={() => del(c)} title="Delete"><Trash2 size={15} className="hover:text-danger" /></button>
+                <button onClick={() => setDeleteConfirm(c)} title="Delete"><Trash2 size={15} className="hover:text-danger" /></button>
               </div>
             </Card>
           ))}
@@ -112,6 +123,16 @@ export default function CategoriesPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Delete Category"
+        desc={`Are you sure you want to delete "${deleteConfirm?.name}"? Its ${deleteConfirm?.count} product(s) will become Uncategorized.`}
+        confirmText="Delete"
+        loading={deleting}
+        onConfirm={del}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

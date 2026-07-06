@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, Plus, X, Pencil, Trash2, Loader2, Ban, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { inr } from "@/lib/format";
 import Link from "next/link";
 
@@ -19,6 +20,8 @@ export default function RetailersPage() {
   const [modal, setModal] = useState<RForm | null>(null);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [actionConfirm, setActionConfirm] = useState<{ type: 'delete' | 'block', r: R } | null>(null);
+  const [acting, setActing] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -57,17 +60,25 @@ export default function RetailersPage() {
     } catch { setErr("Network error"); setSaving(false); }
   };
 
-  const toggleBlock = async (r: R) => {
-    const next = r.status === "blocked" ? "active" : "blocked";
-    if (!confirm(next === "blocked" ? `Block "${r.name}"? They won't be able to place orders.` : `Unblock "${r.name}"?`)) return;
-    await fetch("/api/retailers", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: r.id, status: next }) });
-    await load();
-  };
-
-  const del = async (r: R) => {
-    if (!confirm(`Delete retailer "${r.name}" and their login? This cannot be undone.`)) return;
-    await fetch("/api/retailers", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: r.id }) });
-    await load();
+  const confirmAction = async () => {
+    if (!actionConfirm) return;
+    setActing(true);
+    const { type, r } = actionConfirm;
+    
+    try {
+      if (type === 'block') {
+        const next = r.status === "blocked" ? "active" : "blocked";
+        await fetch("/api/retailers", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: r.id, status: next }) });
+      } else {
+        await fetch("/api/retailers", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: r.id }) });
+      }
+      await load();
+    } catch {
+      // ignore
+    } finally {
+      setActing(false);
+      setActionConfirm(null);
+    }
   };
 
   return (
@@ -117,10 +128,10 @@ export default function RetailersPage() {
                     <td className="px-5 py-3">
                       <div className="flex justify-end gap-2.5 text-faint opacity-0 transition-opacity group-hover:opacity-100">
                         <button onClick={() => { setErr(""); setModal({ ...r, password: "" }); }} title="Edit"><Pencil size={15} className="hover:text-brand" /></button>
-                        <button onClick={() => toggleBlock(r)} title={r.status === "blocked" ? "Unblock" : "Block"}>
+                        <button onClick={() => setActionConfirm({ type: 'block', r })} title={r.status === "blocked" ? "Unblock" : "Block"}>
                           {r.status === "blocked" ? <CheckCircle2 size={15} className="hover:text-success" /> : <Ban size={15} className="hover:text-warning" />}
                         </button>
-                        <button onClick={() => del(r)} title="Delete"><Trash2 size={15} className="hover:text-danger" /></button>
+                        <button onClick={() => setActionConfirm({ type: 'delete', r })} title="Delete"><Trash2 size={15} className="hover:text-danger" /></button>
                       </div>
                     </td>
                   </tr>
@@ -194,6 +205,21 @@ export default function RetailersPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!actionConfirm}
+        title={actionConfirm?.type === 'block' ? (actionConfirm?.r?.status === "blocked" ? "Unblock Retailer" : "Block Retailer") : "Delete Retailer"}
+        desc={
+          actionConfirm?.type === 'block' 
+            ? (actionConfirm?.r?.status === "blocked" ? `Are you sure you want to unblock "${actionConfirm?.r?.name}"?` : `Are you sure you want to block "${actionConfirm?.r?.name}"? They won't be able to place orders.`) 
+            : `Are you sure you want to delete "${actionConfirm?.r?.name}" and their login? This cannot be undone.`
+        }
+        confirmText={actionConfirm?.type === 'block' ? (actionConfirm?.r?.status === "blocked" ? "Unblock" : "Block") : "Delete"}
+        danger={actionConfirm?.type === 'delete' || (actionConfirm?.type === 'block' && actionConfirm?.r?.status !== "blocked")}
+        loading={acting}
+        onConfirm={confirmAction}
+        onCancel={() => setActionConfirm(null)}
+      />
     </div>
   );
 }
