@@ -202,8 +202,8 @@ export default function ProductsPage() {
               <h3 className="text-[15px] font-semibold text-fg">{modal.id && !modal.id.startsWith("mock_") ? "Edit Product" : "Add Product"}</h3>
               <button onClick={() => setModal(null)} className="grid h-8 w-8 place-items-center rounded-lg bg-card2 text-muted"><X size={16} /></button>
             </div>
-            <div className="grid grid-cols-2 gap-4 p-5 max-h-[70vh] overflow-y-auto">
-              <label className="col-span-2 block">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 max-h-[70vh] overflow-y-auto">
+              <label className="sm:col-span-2 block">
                 <span className="mb-1 block text-[12px] font-medium text-muted">Product Name</span>
                 <input value={modal.name} onChange={(e) => setModal({ ...modal, name: e.target.value })} placeholder="India Gate Basmati Rice 5kg"
                   className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
