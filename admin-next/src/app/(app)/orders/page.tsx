@@ -27,22 +27,22 @@ export default async function OrdersPage(props: {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           {CHIPS.map((c) => (
             <Link key={c} href={`/orders?chip=${encodeURIComponent(c)}&q=${encodeURIComponent(q)}`}
-              className={`rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition ${
+              className={`rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition whitespace-nowrap ${
                 chip === c ? "border-brand bg-brand text-white shadow-[0_6px_14px_rgba(15,23,42,.12)]" : "border-border bg-card text-muted hover:text-fg"
               }`}>{c}</Link>
           ))}
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <Form action="/orders" className="flex items-center gap-2 rounded-lg border border-border bg-card px-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto sm:ml-auto">
+          <Form action="/orders" className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 w-full sm:w-auto">
             <input type="hidden" name="chip" value={chip} />
-            <Search size={15} className="text-faint" />
-            <input name="q" defaultValue={q} placeholder="Search orders…" className="w-44 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
+            <Search size={15} className="text-faint shrink-0" />
+            <input name="q" defaultValue={q} placeholder="Search orders…" className="w-full sm:w-44 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
           </Form>
-          <button className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[13px] font-medium text-fg hover:bg-card2"><Download size={15} />Export</button>
+          <button className="flex items-center justify-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[13px] font-medium text-fg hover:bg-card2 w-full sm:w-auto"><Download size={15} />Export</button>
         </div>
       </div>
 

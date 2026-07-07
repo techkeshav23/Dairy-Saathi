@@ -49,10 +49,7 @@ class SupabaseRepository implements Repository {
     return res.map((row) => CategoryModel(
       id: row['id'].toString(),
       name: row['name'] ?? '',
-      icon: IconData(
-        int.tryParse('${row['icon_code']}') ?? Icons.category_outlined.codePoint,
-        fontFamily: 'MaterialIcons',
-      ),
+      icon: Icons.category_outlined,
       color: _parseColor(row['color_hex']),
       itemCount: int.tryParse('${row['item_count']}') ?? 0,
     )).toList();

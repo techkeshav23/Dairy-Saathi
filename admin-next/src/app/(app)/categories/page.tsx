@@ -59,12 +59,12 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-[15px] font-semibold tracking-tight text-fg">Product Categories</h2>
           <p className="mt-0.5 text-[12px] text-faint">Categories shown to retailers when browsing the catalog.</p>
         </div>
-        <button onClick={() => { setErr(""); setModal({ ...BLANK }); }} className="ml-auto flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95">
+        <button onClick={() => { setErr(""); setModal({ ...BLANK }); }} className="w-full sm:w-auto sm:ml-auto flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95">
           <Plus size={16} />Add Category
         </button>
       </div>

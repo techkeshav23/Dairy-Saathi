@@ -128,17 +128,17 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+        <div className="flex w-full sm:w-auto items-center gap-2 rounded-lg border border-border bg-card px-3">
           <Search size={15} className="text-faint" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" className="w-44 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" className="w-full sm:w-44 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
         </div>
-        <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-[13px] font-medium text-fg outline-none focus:border-brand">
+        <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} className="w-full sm:w-auto rounded-lg border border-border bg-card px-3 py-2 text-[13px] font-medium text-fg outline-none focus:border-brand">
           <option value="All">All categories</option>
           {cats.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <span className="text-[12px] text-faint">{rows.length} items</span>
-        <button onClick={openNew} className="ml-auto flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95"><Plus size={16} />Add Product</button>
+        <span className="hidden sm:inline text-[12px] text-faint">{rows.length} items</span>
+        <button onClick={openNew} className="w-full sm:w-auto sm:ml-auto flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95"><Plus size={16} />Add Product</button>
       </div>
 
       <Card className="overflow-hidden">

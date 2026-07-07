@@ -45,7 +45,7 @@ export default function ManualEntryForm({ retailers }: { retailers: Retailer[] }
     <>
       <button 
         onClick={() => { setOpen(true); setUserId(""); setAmount(""); setNote(""); setType("credit"); setErr(""); }}
-        className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95"
+        className="flex w-full sm:w-auto justify-center items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95"
       >
         <Plus size={16} />Add Manual Entry
       </button>

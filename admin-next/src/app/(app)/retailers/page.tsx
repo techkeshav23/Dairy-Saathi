@@ -83,13 +83,13 @@ export default function RetailersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3">
-          <Search size={15} className="text-faint" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search retailers…" className="w-52 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+        <div className="flex w-full sm:w-auto items-center gap-2 rounded-lg border border-border bg-card px-3">
+          <Search size={15} className="text-faint shrink-0" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search retailers…" className="w-full sm:w-52 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
         </div>
-        <span className="text-[12px] text-faint">{rows.length} retailers</span>
-        <button onClick={() => { setErr(""); setModal({ ...BLANK }); }} className="ml-auto flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95">
+        <span className="hidden sm:inline text-[12px] text-faint">{rows.length} retailers</span>
+        <button onClick={() => { setErr(""); setModal({ ...BLANK }); }} className="w-full sm:w-auto sm:ml-auto flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95">
           <Plus size={16} />Add Retailer
         </button>
       </div>

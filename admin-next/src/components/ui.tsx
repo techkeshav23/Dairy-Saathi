@@ -10,12 +10,12 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
 
 export function CardHead({ title, sub, action }: { title: string; sub?: string; action?: ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-border2 px-5 py-4">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border2 px-5 py-4">
       <div>
         <h3 className="text-[14.5px] font-semibold tracking-tight text-fg">{title}</h3>
         {sub && <p className="mt-0.5 text-[12px] text-faint">{sub}</p>}
       </div>
-      {action}
+      {action && <div className="w-full sm:w-auto">{action}</div>}
     </div>
   );
 }

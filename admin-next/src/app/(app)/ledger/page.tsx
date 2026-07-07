@@ -35,9 +35,11 @@ export default async function LedgerPage() {
 
       <Card className="overflow-hidden">
         <CardHead title="Ledger Statement" action={
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-1 text-[13px] font-medium text-info hover:underline">Export PDF <Download size={14} /></button>
-            <ManualEntryForm retailers={retailers} />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center w-full sm:w-auto mt-3 sm:mt-0">
+            <button className="flex w-full sm:w-auto items-center justify-center gap-1 text-[13px] font-medium text-info hover:underline">Export PDF <Download size={14} /></button>
+            <div className="w-full sm:w-auto">
+              <ManualEntryForm retailers={retailers} />
+            </div>
           </div>
         } />
         <div className="overflow-x-auto">

@@ -64,23 +64,6 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text(
-          'Settings',
-          style: TextStyle(
-            color: AppColors.textDark,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: AppColors.card,
-        surfaceTintColor: Colors.transparent,
-        elevation: 1,
-        shadowColor: Colors.black.withValues(alpha: 0.05),
-        iconTheme: const IconThemeData(color: AppColors.textDark),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
             onPressed: () {
               // TODO: Implement search functionality
             },
