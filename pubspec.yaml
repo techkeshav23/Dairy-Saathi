@@ -52,6 +52,7 @@ dependencies:
 
   # Phase 7 — tap-to-WhatsApp / call payment reminders
   url_launcher: ^6.3.0
+  image_picker: ^1.2.3
 
 dev_dependencies:
   flutter_test:

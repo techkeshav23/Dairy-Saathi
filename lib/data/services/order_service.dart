@@ -8,6 +8,8 @@ class OrderService {
   Future<String?> placeOrder({
     required double total,
     required List<Map<String, dynamic>> items,
+    String paymentMode = 'cod',
+    String? screenshotUrl,
   }) async {
     try {
       if (SupabaseConfig.useSupabase) {
@@ -17,6 +19,8 @@ class OrderService {
           params: {
             'total': total,
             'items': items,
+            'payment_mode': paymentMode,
+            'payment_screenshot': screenshotUrl,
           },
         );
 

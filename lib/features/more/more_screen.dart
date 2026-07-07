@@ -47,8 +47,6 @@ class MoreScreen extends StatelessWidget {
                         () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()))),
                   _row(context, Icons.manage_accounts_outlined, 'Account and Preferences',
                       () => Navigator.pushNamed(context, RouteHelper.accountPreferences)),
-                  _row(context, Icons.help_outline, 'Help', () => _toast(context, 'Help — demo')),
-                  _row(context, Icons.info_outline, 'About App Developer', () => _about(context)),
                 ]),
                 const SizedBox(height: Dimensions.paddingSizeExtraLarge),
 

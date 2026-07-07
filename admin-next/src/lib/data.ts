@@ -6,7 +6,9 @@ export type Status =
 export type Order = {
   id: string; ref: string; retailer: string; owner: string; area: string;
   date: string; time: string; items: number; amount: number;
-  payment: "COD" | "Online" | "Khata"; status: Status;
+  payment: string; status: Status;
+  payment_screenshot?: string | null;
+  payment_status?: string | null;
 };
 
 export type Product = {

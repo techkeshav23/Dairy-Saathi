@@ -64,75 +64,62 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text(
+          'Settings',
+          style: TextStyle(
+            color: AppColors.textDark,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: AppColors.card,
+        surfaceTintColor: Colors.transparent,
+        elevation: 1,
+        shadowColor: Colors.black.withValues(alpha: 0.05),
+        iconTheme: const IconThemeData(color: AppColors.textDark),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
             onPressed: () {
               // TODO: Implement search functionality
             },
           ),
         ],
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.only(top: 16.0),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildGroup([
-                  _buildTile(Icons.settings_outlined, 'General', isNew: true),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _buildTile(Icons.receipt_long_outlined, 'Transaction', isNew: true),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _buildTile(Icons.print_outlined, 'Invoice Print'),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _buildTile(Icons.account_balance_outlined, 'Taxes & GST'),
-                ]),
-                const SizedBox(height: 16),
-                
-                _buildGroup([
-                  _buildTile(Icons.group_outlined, 'User Management'),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _buildTile(Icons.sms_outlined, 'Transaction SMS'),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _buildTile(Icons.notifications_active_outlined, 'Reminders'),
-                ]),
-                const SizedBox(height: 16),
-                
-                _buildGroup([
-                  _buildTile(
-                    Icons.business_outlined, 
-                    'Party',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const PartiesScreen()),
-                      );
-                    },
-                  ),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _buildTile(Icons.inventory_2_outlined, 'Item'),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _buildTile(Icons.currency_exchange_outlined, 'Multi-Currency'),
-                ]),
-              ]),
+      body: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          _buildGroup([
+            _buildTile(
+              context,
+              Icons.storefront_outlined,
+              'Business Profile',
+              onTap: () {
+                Navigator.pushNamed(context, '/profile');
+              },
             ),
-          ),
-          const SliverFillRemaining(
-            hasScrollBody: false,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: EdgeInsets.only(top: 40.0, bottom: 48.0),
-                child: PoweredByCodeBlimp(),
-              ),
-            ),
-          ),
+          ]),
+          const SizedBox(height: 40),
+          const PoweredByCodeBlimp(),
         ],
       ),
     );
   }
 
   Widget _buildGroup(List<Widget> children) {
-    return Material(
-      color: AppColors.card,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: children,
@@ -140,52 +127,20 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTile(IconData icon, String title, {bool isNew = false, VoidCallback? onTap}) {
+  Widget _buildTile(BuildContext context, IconData icon, String title, {VoidCallback? onTap}) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 4.0),
-      leading: Icon(icon, color: AppColors.textMedium),
-      title: Semantics(
-        label: isNew ? '$title, New' : title,
-        excludeSemantics: true,
-        child: Row(
-          children: [
-            Flexible(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textDark,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (isNew) ...[
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'NEW',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ],
-          ],
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textDark,
         ),
       ),
       trailing: const Icon(Icons.chevron_right, color: AppColors.textLight),
-      onTap: onTap ?? () {
-        // TODO: Navigate to respective settings screen
-      },
+      onTap: onTap,
     );
   }
 }

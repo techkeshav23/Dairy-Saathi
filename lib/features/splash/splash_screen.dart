@@ -56,15 +56,10 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const AppLogo(size: 96, showWordmark: true),
-            const SizedBox(height: 60),
             const SizedBox(
               width: 26, height: 26,
               child: CircularProgressIndicator(strokeWidth: 2.6),
             ),
-            const SizedBox(height: 14),
-            Text('v${AppConstants.appVersion}', style: robotoRegular.copyWith(
-              color: Theme.of(context).hintColor, fontSize: 12)),
           ],
         ),
       ),

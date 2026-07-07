@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:my_order_pro/common/widgets/custom_button.dart';
 import 'package:my_order_pro/common/widgets/order_summary_card.dart';
@@ -23,6 +26,17 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   PaymentMode _payment = PaymentMode.cod;
   bool _placing = false;
+  File? _paymentScreenshot;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickScreenshot() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _paymentScreenshot = File(image.path);
+      });
+    }
+  }
 
   Future<void> _placeOrder() async {
     if (_placing) return;
@@ -60,9 +74,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
+    if (_payment == PaymentMode.qr && _paymentScreenshot == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please upload a screenshot of your payment.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     setState(() => _placing = true);
 
     try {
+      String? screenshotUrl;
+      if (_payment == PaymentMode.qr && _paymentScreenshot != null) {
+        final fileName = 'qr_payment_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        await Supabase.instance.client.storage
+            .from('payment_screenshots')
+            .upload(fileName, _paymentScreenshot!);
+        screenshotUrl = Supabase.instance.client.storage
+            .from('payment_screenshots')
+            .getPublicUrl(fileName);
+      }
       final address = user!.address;
 
       // Map cart items for the order service
@@ -78,6 +112,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final orderId = await OrderService().placeOrder(
         total: cart.grandTotal,
         items: itemsData,
+        paymentMode: _payment.name,
+        screenshotUrl: screenshotUrl,
       );
 
       if (orderId == null) {
@@ -180,6 +216,55 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           _paymentTile(PaymentMode.cod, Icons.payments_outlined, 'Pay cash when stock is delivered'),
           _paymentTile(PaymentMode.online, Icons.account_balance_outlined, 'UPI, cards, net-banking'),
           _paymentTile(PaymentMode.credit, Icons.account_balance_wallet_outlined, 'Add to khata, settle in 15 days'),
+          _paymentTile(PaymentMode.qr, Icons.qr_code_scanner_rounded, 'Pay via QR Code & upload screenshot'),
+          
+          if (_payment == PaymentMode.qr)
+            Container(
+              margin: const EdgeInsets.only(bottom: Dimensions.paddingSizeLarge),
+              padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+              decoration: _boxDeco(context),
+              child: Column(
+                children: [
+                  const Text(
+                    'Scan to Pay',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  // Dummy QR Code - Replace with network image or actual logic later
+                  Container(
+                    width: 150,
+                    height: 150,
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.qr_code_2, size: 100, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 16),
+                  if (_paymentScreenshot != null)
+                    Stack(
+                      alignment: Alignment.topRight,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(_paymentScreenshot!, height: 100, width: 80, fit: BoxFit.cover),
+                        ),
+                        GestureDetector(
+                          onTap: () => setState(() => _paymentScreenshot = null),
+                          child: Container(
+                            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                            child: const Icon(Icons.close, color: Colors.white, size: 20),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    CustomButton(
+                      text: 'Upload Screenshot',
+                      icon: Icons.upload_file,
+                      onPressed: _pickScreenshot,
+                    ),
+                ],
+              ),
+            ),
+
           const SizedBox(height: Dimensions.paddingSizeLarge),
 
           _sectionTitle('Order Summary'),
@@ -246,6 +331,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         break;
       case PaymentMode.credit:
         title = 'Pay Later (Khata)';
+        break;
+      case PaymentMode.qr:
+        title = 'Pay via QR Code';
         break;
     }
 

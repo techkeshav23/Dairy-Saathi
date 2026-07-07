@@ -74,7 +74,7 @@ export async function getOrders(): Promise<Order[]> {
   try {
     const { data, error } = await supabaseAdmin
       .from("orders")
-      .select("id, status, total, created_at, app_users(name, shop_name), order_items(id)")
+      .select("id, status, total, payment_mode, payment_screenshot, payment_status, created_at, app_users(name, shop_name), order_items(id)")
       .order("created_at", { ascending: false });
     if (error) throw error;
 
@@ -91,7 +91,9 @@ export async function getOrders(): Promise<Order[]> {
         time: d.toTimeString().slice(0, 5),
         items: o.order_items?.length ?? 0,
         amount: Number(o.total) || 0,
-        payment: "COD",
+        payment: (o.payment_mode || "COD").toUpperCase(),
+        payment_screenshot: o.payment_screenshot,
+        payment_status: o.payment_status,
         status: STATUS_MAP[String(o.status).toLowerCase()] ?? "Placed",
       };
     });

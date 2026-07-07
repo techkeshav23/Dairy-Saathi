@@ -42,7 +42,7 @@ class OrderLine {
   double get total => unitPrice * quantity;
 }
 
-enum PaymentMode { cod, online, credit }
+enum PaymentMode { cod, online, credit, qr }
 
 extension PaymentModeX on PaymentMode {
   String get label {
@@ -53,6 +53,8 @@ extension PaymentModeX on PaymentMode {
         return 'Online / UPI';
       case PaymentMode.credit:
         return 'Pay Later (Khata)';
+      case PaymentMode.qr:
+        return 'Pay via QR Code';
     }
   }
 }
