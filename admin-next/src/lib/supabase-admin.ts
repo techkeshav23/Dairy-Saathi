@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 // SERVER-ONLY Supabase admin client.
 //
@@ -17,9 +17,15 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 /** True only when a real service_role key is configured. */
 export const hasAdminAccess = url.startsWith("https://") && serviceKey.length > 20;
 
-/** RLS-bypassing client, or null when not configured (callers fall back to mock data). */
-export const supabaseAdmin = hasAdminAccess
+// We cast to SupabaseClient (non-null) because every route that uses supabaseAdmin
+// already has an early-return guard: `if (!supabaseAdmin) return ...`.
+// This avoids repetitive "possibly null" TS errors across all call sites.
+const _client = hasAdminAccess
   ? createClient(url, serviceKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     })
   : null;
+
+/** RLS-bypassing client. Always check hasAdminAccess before calling. */
+export const supabaseAdmin = _client as SupabaseClient;
+
