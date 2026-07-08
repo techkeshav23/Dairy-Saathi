@@ -1,7 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Loader2, ImageIcon } from "lucide-react";
-import { banners as seed } from "@/lib/data";
 import ImageInput from "@/components/ImageInput";
 
 type Banner = { id: string; title: string; sub: string; tag: string; color: string; image: string; active: boolean };
@@ -44,14 +43,14 @@ export default function BannersPage() {
     try {
       const res = await fetch("/api/banners", { cache: "no-store" });
       const data = await res.json();
-      if (Array.isArray(data) && data.length) {
+      if (Array.isArray(data)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setItems(data.map((b: any) => ({ id: b.id, title: b.title || "", sub: b.subtitle || "", tag: b.tag || "", color: b.accent_hex ?? "#2b50d6", image: b.image || b.image_url || "", active: true })));
       } else {
-        setItems(seed.map((b, i) => ({ ...b, id: "seed_" + i, image: "" })));
+        setItems([]);
       }
     } catch {
-      setItems(seed.map((b, i) => ({ ...b, id: "seed_" + i, image: "" })));
+      setItems([]);
     }
     setLoading(false);
   }, []);
@@ -63,7 +62,7 @@ export default function BannersPage() {
   const save = async () => {
     if (!modal || (!modal.title.trim() && !modal.image.trim())) { setErr("Add a title or an image"); return; }
     setSaving(true); setErr("");
-    const isEdit = !!modal.id && !modal.id.startsWith("seed_");
+    const isEdit = !!modal.id;
     try {
       const res = await fetch("/api/banners", {
         method: isEdit ? "PATCH" : "POST",
@@ -79,7 +78,6 @@ export default function BannersPage() {
   };
 
   const del = async (id: string) => {
-    if (id.startsWith("seed_")) { setItems((p) => p.filter((b) => b.id !== id)); return; }
     if (!confirm("Delete this banner?")) return;
     await fetch("/api/banners", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
     await load();
@@ -133,7 +131,7 @@ export default function BannersPage() {
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={() => setModal(null)}>
           <div className="w-full max-w-md rounded-2xl border border-border bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <h3 className="text-[15px] font-semibold text-fg">{modal.id && !modal.id.startsWith("seed_") ? "Edit Banner" : "Add Banner"}</h3>
+              <h3 className="text-[15px] font-semibold text-fg">{modal.id ? "Edit Banner" : "Add Banner"}</h3>
               <button onClick={() => setModal(null)} className="grid h-8 w-8 place-items-center rounded-lg bg-card2 text-muted"><X size={16} /></button>
             </div>
 
