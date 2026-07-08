@@ -63,12 +63,15 @@ but note the palette moved from red → cobalt/graphite).
 | Area | Status | Backing |
 |------|--------|---------|
 | Dashboard (KPIs + **charts** + recent orders) | ✅ live | `supabase-data.ts` (service_role) |
-| Orders | ✅ live (list) — status update still TODO | `getOrders` |
+| Orders | ✅ live + **status lifecycle** (Confirmed→Packed→Dispatched→Delivered/Cancelled via `OrderStatusSelect`) | [`/api/orders`](../admin-next/src/app/api/orders/route.ts) |
 | **Retailers** | ✅ **CRUD** — create (auth login + profile), edit, block, delete, role | [`/api/retailers`](../admin-next/src/app/api/retailers/route.ts) |
+| **Retailer 360** | ✅ per-retailer CRM page (orders, ledger, notes/interaction log) | [`/retailers/[id]`](../admin-next/src/app/(app)/retailers/[id]/page.tsx) + [`/api/retailers/[id]/notes`](../admin-next/src/app/api/retailers/[id]/notes/route.ts) |
 | **Products** | ✅ **CRUD** + image + category filter | [`/api/products`](../admin-next/src/app/api/products/route.ts) |
 | **Categories** | ✅ **CRUD** | [`/api/categories`](../admin-next/src/app/api/categories/route.ts) |
 | **Banners** | ✅ **CRUD** + image + colour-overlay toggle | [`/api/banners`](../admin-next/src/app/api/banners/route.ts) |
-| Ledger / Reports / Purchase / Settings | ⚠️ partly mock / read-only | — |
+| **Ledger** | ✅ live + manual khata entries (recharges) from admin | [`/api/ledger`](../admin-next/src/app/api/ledger/route.ts) |
+| **Settings** | ✅ persisted (`store_settings`, v21) | [`/api/settings`](../admin-next/src/app/api/settings/route.ts) |
+| Reports / Purchase | ⚠️ partly mock / read-only | — |
 
 - **Add Retailer** = `supabaseAdmin.auth.admin.createUser()` (email+password, pre-confirmed) **+** `app_users`
   profile insert (rolls back the auth user if the profile fails). That login then works in the mobile app.
@@ -78,7 +81,7 @@ but note the palette moved from red → cobalt/graphite).
 
 ## 4. Backend — migrations & mechanics
 
-Run `schema.sql` → `schema_v18` **in order**. Migrations **v11–v18** (added this phase):
+Run `schema.sql` → **`schema_v23`** **in order**. Migrations **v11–v23** (added since the original build):
 
 | File | Purpose |
 |------|---------|
@@ -90,6 +93,12 @@ Run `schema.sql` → `schema_v18` **in order**. Migrations **v11–v18** (added 
 | `schema_v16_product_images.sql` | product images loremflickr → reliable picsum |
 | `schema_v17_retailer_accounts.sql` | enrich `app_users` (email, business_name, owner_name, area, credit_limit, status, code, created_by) |
 | `schema_v18_user_roles.sql` | `app_users.role` (retailer/distributor) |
+| `schema_v19_storage.sql` | Supabase Storage bucket for product/banner images (+ policies) |
+| `schema_v20_stock_ledger_triggers.sql` | Postgres triggers: order confirm → stock decrement, cancel → restore |
+| `schema_v21_settings.sql` | `store_settings` table (admin settings persistence) |
+| `schema_v22_retailer_notes.sql` | retailer notes / interaction log (Retailer 360) |
+| `schema_v23_qr_payments.sql` | QR payment mode: payment columns on orders, `payment_screenshots` bucket, updated `place_order` |
+| `wipe_demo_data.sql` | utility — clears demo/seed data (not a migration; run only on purpose) |
 
 - **P0 Priority backlog is DONE:**
   - **Orders:** Fully manageable (Confirmed/Packed/Dispatched/Delivered) from the Admin panel via `OrderStatusSelect`.
@@ -114,8 +123,10 @@ Run `schema.sql` → `schema_v18` **in order**. Migrations **v11–v18** (added 
 ## 5. What's next
 
 The full prioritized backlog is in **[`../ROADMAP.md`](../ROADMAP.md)** (P0 core commerce → P2 CRM depth).
-Biggest open gaps: order lifecycle/status, payments & credit wiring, notifications, and the CRM features
-(retailer 360, segments, follow-ups, collections, analytics).
+**P0 is complete** (order lifecycle, payments/khata wiring, stock triggers, credit limits, invoices) plus
+settings persistence and Retailer 360. Biggest open gaps now: **deployment** (Vercel + Play Store),
+**notifications** (new order / status change), reports & exports, pagination/search, and the remaining CRM
+depth (segments & tags, follow-ups/tasks, collections & credit risk, campaigns, analytics).
 
 ---
 

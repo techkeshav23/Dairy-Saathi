@@ -85,7 +85,6 @@ Settings persistence and Retailer 360 CRM profile are complete.
 
 ## ⚠️ Known issues / tech debt (fix opportunistically)
 
-- **Payments/recharge not persisted** — mobile wallet/recharge is UI-only (see P0 #2).
 - **Order state duplication** — `OrderProvider` keeps a local list *and* the server has the order; can drift.
 - **Two mobile data layers** — abstract `Repository` (catalog) vs `services/*` (accounting) aren't unified.
 - **Dead code** — distributor accounting screens are only reachable in the distributor shell; mock data + unused OTP methods remain.
@@ -95,12 +94,12 @@ Settings persistence and Retailer 360 CRM profile are complete.
 
 ---
 
-## Suggested build order
+## Suggested build order (updated — P0 done)
 
-1. **P0 #1–3, 6** (order lifecycle + payments + stock + credit) → the loop actually works end-to-end.
-2. **P0 #4–5** (notifications + invoices) → feels like a real product.
-3. **P1 #7, 9, 11** (deploy + security + monitoring) → safely live.
-4. **P2 #16–19** (retailer 360, segments, follow-ups, comms) → the CRM.
-5. Iterate on the rest by business need.
+1. **P1 #7, 9, 11** (deploy + security pass + monitoring) → safely live.
+2. **P0 #4** (notifications — new order → distributor, status change → retailer).
+3. **P1 #12, 14** (pagination/search + reports & exports).
+4. **P2 #17–19** (segments & tags, follow-ups/tasks, communication log) → the CRM depth.
+5. Iterate on the rest (collections, campaigns, analytics, delivery) by business need.
 
 _Architecture notes and file-level maps live in [`context/`](context/) — start there for onboarding a developer._

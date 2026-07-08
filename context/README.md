@@ -45,7 +45,7 @@ accounting console — same app, gated by `app_users.role`) + a **real-auth Next
   ([`distributor_dashboard.dart`](../lib/features/dashboard/distributor_dashboard.dart)).
 - **Admin app code:** [`admin-next/`](../admin-next/) — Next.js 16 App Router, real auth
   ([`proxy.ts`](../admin-next/src/proxy.ts) guards everything), CRUD via `src/app/api/*` (service_role).
-- **Backend:** [`supabase/`](../supabase/) — run `schema.sql` → **`schema_v18_*.sql`** in order.
+- **Backend:** [`supabase/`](../supabase/) — run `schema.sql` → **`schema_v23_*.sql`** in order.
 - **Auth:** email/password (Supabase Auth) on **both** app and admin. Mobile retailers self-sign-up;
   distributor = `admin@admin.com` (or `role='distributor'`).
 - **Supabase is LIVE.** Mobile ships the publishable key; the **service_role** key is only in
