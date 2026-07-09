@@ -3,8 +3,11 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { salesTrend, categorySplit, topProducts } from "@/lib/data";
 import { inr } from "@/lib/format";
+
+type SalesPoint = { m: string; sales: number; target: number };
+type CategoryPoint = { name: string; value: number; color: string };
+type ProductPoint = { name: string; qty: number; revenue: number };
 
 const tip = {
   background: "var(--card)",
@@ -15,7 +18,18 @@ const tip = {
   boxShadow: "0 8px 24px rgba(15,23,42,.10)",
 };
 
-export function SalesArea({ data = salesTrend }: { data?: typeof salesTrend }) {
+// Shown instead of a chart when there's no data yet — honest empty state, no fake lines.
+function EmptyChart({ height, label }: { height: number; label: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1 text-center" style={{ height }}>
+      <div className="text-[13px] font-medium text-muted">{label}</div>
+      <div className="text-[11.5px] text-faint">Data will appear here once orders come in</div>
+    </div>
+  );
+}
+
+export function SalesArea({ data = [] }: { data?: SalesPoint[] }) {
+  if (data.length === 0) return <EmptyChart height={280} label="No sales yet" />;
   return (
     <ResponsiveContainer width="100%" height={280}>
       <AreaChart data={data} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
@@ -37,7 +51,8 @@ export function SalesArea({ data = salesTrend }: { data?: typeof salesTrend }) {
   );
 }
 
-export function CategoryDonut({ data = categorySplit }: { data?: typeof categorySplit }) {
+export function CategoryDonut({ data = [] }: { data?: CategoryPoint[] }) {
+  if (data.length === 0) return <EmptyChart height={220} label="No category data yet" />;
   return (
     <ResponsiveContainer width="100%" height={220}>
       <PieChart>
@@ -50,7 +65,8 @@ export function CategoryDonut({ data = categorySplit }: { data?: typeof category
   );
 }
 
-export function TopProductsBars({ data: input = topProducts }: { data?: typeof topProducts }) {
+export function TopProductsBars({ data: input = [] }: { data?: ProductPoint[] }) {
+  if (input.length === 0) return <EmptyChart height={260} label="No product sales yet" />;
   const data = [...input].reverse();
   return (
     <ResponsiveContainer width="100%" height={260}>

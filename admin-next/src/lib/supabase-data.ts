@@ -286,12 +286,12 @@ export async function getDashboardKpis(): Promise<DashboardKpis> {
 
 // ---------------------------------------------------------------- Sales trend (chart)
 export async function getSalesTrend(): Promise<typeof mockSalesTrend> {
-  if (!supabaseAdmin) return mockSalesTrend;
+  if (!supabaseAdmin) return [];
   try {
     const { data, error } = await supabaseAdmin.from("orders").select("total, status, created_at");
     if (error) throw error;
     const rows = ((data as any[]) ?? []).filter((o) => String(o.status).toLowerCase() !== "cancelled");
-    if (rows.length === 0) return mockSalesTrend;
+    if (rows.length === 0) return [];
 
     const now = new Date();
     const months: { key: string; m: string }[] = [];
@@ -312,13 +312,13 @@ export async function getSalesTrend(): Promise<typeof mockSalesTrend> {
     return months.map((mm, i) => ({ m: mm.m, sales: vals[i], target }));
   } catch (err) {
     console.error("getSalesTrend:", err);
-    return mockSalesTrend;
+    return [];
   }
 }
 
 // ---------------------------------------------------------------- Category split (chart)
 export async function getCategorySplit(): Promise<typeof mockCategorySplit> {
-  if (!supabaseAdmin) return mockCategorySplit;
+  if (!supabaseAdmin) return [];
   try {
     const { data, error } = await supabaseAdmin.from("order_items").select("qty, unit_price, products(categories(name))");
     if (error) throw error;
@@ -328,7 +328,7 @@ export async function getCategorySplit(): Promise<typeof mockCategorySplit> {
       const name = (Array.isArray(catObj) ? catObj[0]?.name : catObj?.name) || "Other";
       map.set(name, (map.get(name) || 0) + Number(it.qty) * Number(it.unit_price));
     }
-    if (map.size === 0) return mockCategorySplit;
+    if (map.size === 0) return [];
     const total = [...map.values()].reduce((a, b) => a + b, 0) || 1;
     const colors = ["#2b50d6", "#0f9d63", "#c07708", "#586172", "#2b6cf0", "#dc4249"];
     return [...map.entries()]
@@ -337,13 +337,13 @@ export async function getCategorySplit(): Promise<typeof mockCategorySplit> {
       .map(([name, val], i) => ({ name, value: Math.round((val / total) * 100), color: colors[i % colors.length] }));
   } catch (err) {
     console.error("getCategorySplit:", err);
-    return mockCategorySplit;
+    return [];
   }
 }
 
 // ---------------------------------------------------------------- Top products (chart)
 export async function getTopProducts(): Promise<typeof mockTopProducts> {
-  if (!supabaseAdmin) return mockTopProducts;
+  if (!supabaseAdmin) return [];
   try {
     const { data, error } = await supabaseAdmin.from("order_items").select("qty, unit_price, products(name)");
     if (error) throw error;
@@ -353,13 +353,13 @@ export async function getTopProducts(): Promise<typeof mockTopProducts> {
       const cur = map.get(name) || { qty: 0, revenue: 0 };
       map.set(name, { qty: cur.qty + Number(it.qty), revenue: cur.revenue + Number(it.qty) * Number(it.unit_price) });
     }
-    if (map.size === 0) return mockTopProducts;
+    if (map.size === 0) return [];
     return [...map.entries()]
       .sort((a, b) => b[1].revenue - a[1].revenue)
       .slice(0, 5)
       .map(([name, v]) => ({ name, qty: v.qty, revenue: Math.round(v.revenue) }));
   } catch (err) {
     console.error("getTopProducts:", err);
-    return mockTopProducts;
+    return [];
   }
 }
