@@ -108,7 +108,7 @@ export async function getRetailers(): Promise<Retailer[]> {
   if (!supabaseAdmin) return mockRetailers;
   try {
     const [uRes, lRes] = await Promise.all([
-      supabaseAdmin.from("app_users").select("id, phone, name, shop_name, orders(id)"),
+      supabaseAdmin.from("app_users").select("id, phone, name, shop_name, orders(id)").eq("role", "retailer"),
       supabaseAdmin.from("ledger_entries").select("user_id, type, amount"),
     ]);
     if (uRes.error) throw uRes.error;
@@ -229,7 +229,7 @@ export async function getDashboardKpis(): Promise<DashboardKpis> {
   try {
     const [oRes, uRes, lRes] = await Promise.all([
       supabaseAdmin.from("orders").select("total, status, created_at"),
-      supabaseAdmin.from("app_users").select("id, created_at"),
+      supabaseAdmin.from("app_users").select("id, created_at").eq("role", "retailer"),
       supabaseAdmin.from("ledger_entries").select("type, amount"),
     ]);
     if (oRes.error) throw oRes.error;

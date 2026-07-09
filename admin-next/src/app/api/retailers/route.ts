@@ -10,7 +10,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 export async function GET() {
   if (!supabaseAdmin) return NextResponse.json([]);
   const [uRes, lRes] = await Promise.all([
-    supabaseAdmin.from("app_users").select("id, code, business_name, owner_name, area, phone, email, gst, credit_limit, status, created_by, role, created_at, orders(id)"),
+    supabaseAdmin.from("app_users").select("id, code, business_name, owner_name, area, phone, email, gst, id_type, id_number, credit_limit, status, created_by, role, created_at, orders(id)").eq("role", "retailer"),
     supabaseAdmin.from("ledger_entries").select("user_id, type, amount"),
   ]);
   if (uRes.error) return NextResponse.json({ error: uRes.error.message }, { status: 500 });
@@ -30,6 +30,8 @@ export async function GET() {
     phone: u.phone || "",
     email: u.email || "",
     gst: u.gst || "",
+    idType: u.id_type || (u.gst ? "gst" : ""),
+    idNumber: u.id_number || u.gst || "",
     limit: Number(u.credit_limit) || 0,
     outstanding: Math.max(0, Math.round(outMap.get(u.id) ?? 0)),
     status: u.status || "active",
@@ -58,8 +60,10 @@ export async function POST(req: NextRequest) {
   const uid = created.user.id;
   const code = (b.code && String(b.code).trim()) || "R" + Date.now().toString().slice(-6);
 
-  // 2) create the retailer profile
-  const { error: pErr } = await supabaseAdmin.from("app_users").insert({
+  // 2) create the retailer profile. Use upsert because the handle_new_user trigger (v27)
+  //    already inserted a minimal row when the auth user was created — upsert fills in the
+  //    full admin-entered details (credit limit, code, created_by='admin', etc.).
+  const { error: pErr } = await supabaseAdmin.from("app_users").upsert({
     id: uid,
     email: b.email.trim(),
     phone: b.phone ? String(b.phone) : null,

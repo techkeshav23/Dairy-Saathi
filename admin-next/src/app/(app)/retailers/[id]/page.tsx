@@ -82,7 +82,7 @@ export default async function Retailer360Page(props: { params: Promise<{ id: str
               <div className="flex items-center gap-1.5"><Phone size={14} />{user.phone}</div>
               <div className="flex items-center gap-1.5"><Mail size={14} />{user.email || 'N/A'}</div>
               <div className="flex items-center gap-1.5"><MapPin size={14} />{user.area || 'N/A'}</div>
-              <div className="flex items-center gap-1.5"><Store size={14} />GST: {user.gst || 'N/A'}</div>
+              <div className="flex items-center gap-1.5"><Store size={14} />{(user.id_type ? String(user.id_type).toUpperCase() : 'GST')}: {user.id_number || user.gst || 'N/A'}</div>
             </div>
           </div>
           

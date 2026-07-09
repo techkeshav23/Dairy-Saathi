@@ -20,11 +20,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _owner = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _confirm = TextEditingController();
   final _phone = TextEditingController();
   final _area = TextEditingController();
-  final _gst = TextEditingController();
+  final _idNumber = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscure = true;
+  bool _obscureConfirm = true;
+  String _idType = 'gst'; // 'gst' | 'pan' | 'aadhaar'
 
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
@@ -36,7 +39,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       shopName: _shop.text.trim(),
       ownerName: _owner.text.trim(),
       phone: _phone.text.trim(),
-      gstin: _gst.text.trim(),
+      idType: _idType,
+      idNumber: _idNumber.text.trim().toUpperCase(),
       area: _area.text.trim(),
     );
     if (!mounted) return;
@@ -56,9 +60,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _owner.dispose();
     _email.dispose();
     _password.dispose();
+    _confirm.dispose();
     _phone.dispose();
     _area.dispose();
-    _gst.dispose();
+    _idNumber.dispose();
     super.dispose();
   }
 
@@ -134,22 +139,45 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ))),
                 const SizedBox(height: 14),
 
+                _label('Confirm Password *'),
+                TextFormField(controller: _confirm, obscureText: _obscureConfirm,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Re-enter your password';
+                      if (v != _password.text) return 'Passwords do not match';
+                      return null;
+                    },
+                    decoration: _decoration('Re-enter your password', Icons.lock_outline,
+                        suffix: IconButton(
+                          icon: Icon(_obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: AppColors.textLight, size: 20),
+                          onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                        ))),
+                const SizedBox(height: 14),
+
                 _label('Phone (optional)'),
                 TextFormField(controller: _phone, keyboardType: TextInputType.phone,
                     decoration: _decoration('10-digit mobile', Icons.phone_outlined)),
                 const SizedBox(height: 14),
 
+                _label('Area (optional)'),
+                TextFormField(controller: _area, decoration: _decoration('City / area', Icons.location_on_outlined)),
+                const SizedBox(height: 14),
+
+                _label('ID Proof *'),
                 Row(children: [
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    _label('Area'),
-                    TextFormField(controller: _area, decoration: _decoration('City / area', Icons.location_on_outlined)),
-                  ])),
-                  const SizedBox(width: 12),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    _label('GSTIN'),
-                    TextFormField(controller: _gst, textCapitalization: TextCapitalization.characters, decoration: _decoration('Optional', Icons.receipt_long_outlined)),
-                  ])),
+                  _idChip('GST', 'gst'),
+                  const SizedBox(width: 8),
+                  _idChip('PAN', 'pan'),
+                  const SizedBox(width: 8),
+                  _idChip('Aadhaar', 'aadhaar'),
                 ]),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _idNumber,
+                  textCapitalization: _idType == 'aadhaar' ? TextCapitalization.none : TextCapitalization.characters,
+                  keyboardType: _idType == 'aadhaar' ? TextInputType.number : TextInputType.text,
+                  validator: _validateId,
+                  decoration: _decoration(_idHint, Icons.badge_outlined),
+                ),
                 const SizedBox(height: 28),
 
                 CustomButton(text: 'Create Account', isLoading: auth.loading, onPressed: _signUp),
@@ -176,4 +204,57 @@ class _SignUpScreenState extends State<SignUpScreen> {
         padding: const EdgeInsets.only(bottom: 6, left: 2),
         child: Text(t, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: AppColors.textMedium)),
       );
+
+  String get _idHint => _idType == 'gst'
+      ? '15-character GSTIN'
+      : _idType == 'pan'
+          ? '10-character PAN (e.g. ABCDE1234F)'
+          : '12-digit Aadhaar number';
+
+  Widget _idChip(String label, String value) {
+    final selected = _idType == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() {
+          _idType = value;
+          _idNumber.clear();
+        }),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primary : AppColors.card,
+            borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+            border: Border.all(color: selected ? AppColors.primary : AppColors.border),
+          ),
+          child: Text(label,
+              style: robotoMedium.copyWith(
+                  color: selected ? Colors.white : AppColors.textMedium, fontSize: Dimensions.fontSizeSmall)),
+        ),
+      ),
+    );
+  }
+
+  String? _validateId(String? v) {
+    final s = (v ?? '').trim().toUpperCase();
+    if (s.isEmpty) {
+      return _idType == 'gst'
+          ? 'Enter your GSTIN'
+          : _idType == 'pan'
+              ? 'Enter your PAN'
+              : 'Enter your Aadhaar number';
+    }
+    switch (_idType) {
+      case 'gst':
+        if (!RegExp(r'^[0-9A-Z]{15}$').hasMatch(s)) return 'GSTIN must be 15 characters';
+        break;
+      case 'pan':
+        if (!RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]$').hasMatch(s)) return 'Invalid PAN (e.g. ABCDE1234F)';
+        break;
+      case 'aadhaar':
+        if (!RegExp(r'^[0-9]{12}$').hasMatch(s)) return 'Aadhaar must be 12 digits';
+        break;
+    }
+    return null;
+  }
 }

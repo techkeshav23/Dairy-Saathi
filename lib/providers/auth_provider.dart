@@ -86,20 +86,45 @@ class AuthProvider extends ChangeNotifier {
     required String shopName,
     required String ownerName,
     String phone = '',
-    String gstin = '',
+    String idType = 'gst', // 'gst' | 'pan' | 'aadhaar'
+    String idNumber = '',
     String area = '',
   }) async {
     _loading = true;
     notifyListeners();
     try {
-      final res = await _sb.auth.signUp(email: email.trim(), password: password);
+      // Pass the profile fields as user metadata — the `handle_new_user` DB trigger
+      // reads these to create the app_users row server-side, so the retailer always
+      // shows up in the admin panel (works even when email-confirmation is ON).
+      final res = await _sb.auth.signUp(
+        email: email.trim(),
+        password: password,
+        data: {
+          'business_name': shopName,
+          'shop_name': shopName,
+          'owner_name': ownerName,
+          'name': ownerName,
+          'phone': phone,
+          'id_type': idType,
+          'id_number': idNumber,
+          'gst': idType == 'gst' ? idNumber : '',
+          'area': area,
+          'created_by': 'self',
+        },
+      );
       final user = res.user;
       if (user == null) return 'Sign up failed. Please try again.';
+
+      // Supabase returns a user with an empty identities list when the email is already
+      // registered (it hides this to prevent email enumeration) — detect and surface it.
+      if ((user.identities ?? const []).isEmpty) {
+        return 'This email is already registered. Please sign in instead.';
+      }
 
       await prefs.setString(AppConstants.userName, ownerName);
       await prefs.setString(AppConstants.shopName, shopName);
       await prefs.setString(AppConstants.userPhone, phone);
-      await prefs.setString('saathi_gstin', gstin);
+      await prefs.setString('saathi_gstin', idType == 'gst' ? idNumber : '');
       await prefs.setString('saathi_email', email.trim());
 
       // Needs an active session (email-confirmation OFF) to write the profile under RLS.
@@ -116,7 +141,9 @@ class AuthProvider extends ChangeNotifier {
           'owner_name': ownerName,
           'shop_name': shopName,
           'name': ownerName,
-          'gst': gstin,
+          'gst': idType == 'gst' ? idNumber : '',
+          'id_type': idType,
+          'id_number': idNumber,
           'area': area,
           'status': 'active',
           'created_by': 'self',
