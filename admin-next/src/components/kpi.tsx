@@ -16,7 +16,7 @@ function Spark({ data, up }: { data: number[]; up: boolean }) {
 }
 
 export function KpiCard({ label, value, prefix = "", delta, down, spark, delay = 0 }: {
-  label: string; value: number; prefix?: string; delta: number; down?: boolean; spark: number[]; delay?: number;
+  label: string; value: number; prefix?: string; delta?: number; down?: boolean; spark?: number[]; delay?: number;
 }) {
   const [n, setN] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
@@ -36,12 +36,14 @@ export function KpiCard({ label, value, prefix = "", delta, down, spark, delay =
     <div ref={ref} className="fade-up rounded-xl border border-border bg-card p-5 elev-1" style={{ animationDelay: `${delay}ms` }}>
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-faint">{label}</span>
-        <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${down ? "bg-danger-soft text-danger" : "bg-success-soft text-success"}`}>
-          {down ? <ArrowDownRight size={12} /> : <ArrowUpRight size={12} />}{Math.abs(delta)}%
-        </span>
+        {delta !== undefined && (
+          <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${down ? "bg-danger-soft text-danger" : "bg-success-soft text-success"}`}>
+            {down ? <ArrowDownRight size={12} /> : <ArrowUpRight size={12} />}{Math.abs(delta)}%
+          </span>
+        )}
       </div>
       <div className="tnum mt-2.5 text-[27px] font-semibold leading-none tracking-tight text-fg">{prefix}{n.toLocaleString("en-IN")}</div>
-      <div className="mt-3"><Spark data={spark} up={!down} /></div>
+      {spark && spark.length > 1 && <div className="mt-3"><Spark data={spark} up={!down} /></div>}
     </div>
   );
 }

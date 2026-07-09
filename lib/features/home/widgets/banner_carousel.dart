@@ -53,86 +53,93 @@ class _BannerCarouselState extends State<BannerCarousel> {
   }
 
   Widget _buildBanner(BannerModel b) {
+    final Color? accent = b.accent;
+    final bool hasImage = b.image.isNotEmpty;
+    const shadow = [Shadow(color: Color(0x99000000), blurRadius: 4, offset: Offset(0, 1))];
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Stack(
-          children: [
-            // decorative corner swoosh (top-left)
-            Positioned(
-              left: -46, top: -52,
-              child: Transform.rotate(
-                angle: -0.5,
-                child: Container(
-                  width: 170, height: 96,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [b.accent, AppColors.warning],
-                      begin: Alignment.topLeft, end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-              child: Row(
-                children: [
-                  // product thumbnail
-                  Container(
-                    width: 92, height: 110,
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(Dimensions.radiusMedium),
-                      color: AppColors.surface,
-                    ),
-                    child: b.image.startsWith('http')
-                        ? Image.network(b.image, fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Container(color: AppColors.surface),
-                            loadingBuilder: (_, child, progress) =>
-                                progress == null ? child : Container(color: AppColors.surface))
-                        : Image.asset(b.image, fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Container(color: AppColors.surface)),
-                  ),
-                  const SizedBox(width: Dimensions.paddingSizeDefault),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: b.accent,
-                            borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                          ),
-                          child: Text(b.tag, style: robotoBold.copyWith(
-                              color: Colors.white, fontSize: 9, letterSpacing: 0.5)),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(b.title,
-                            maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: robotoBold.copyWith(
-                                color: b.accent, fontSize: Dimensions.fontSizeExtraLarge, letterSpacing: 0.2)),
-                        const SizedBox(height: 3),
-                        Text(b.subtitle,
-                            maxLines: 2, overflow: TextOverflow.ellipsis,
-                            style: robotoMedium.copyWith(
-                                color: AppColors.textMedium, fontSize: Dimensions.fontSizeSmall, height: 1.25)),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 1) full-bleed background — the uploaded image (or a gradient if none)
+          if (hasImage)
+            b.image.startsWith('http')
+                ? Image.network(b.image, fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _fallbackBg(accent),
+                    loadingBuilder: (_, child, progress) =>
+                        progress == null ? child : _fallbackBg(accent))
+                : Image.asset(b.image, fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _fallbackBg(accent))
+          else
+            _fallbackBg(accent),
+
+          // 2) overlay — colour tint if an accent is set, else a dark scrim for legibility
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: accent != null
+                  ? LinearGradient(
+                      begin: Alignment.centerLeft, end: Alignment.centerRight,
+                      colors: [
+                        accent.withValues(alpha: 0.94),
+                        accent.withValues(alpha: 0.66),
+                        accent.withValues(alpha: 0.30),
                       ],
+                    )
+                  : const LinearGradient(
+                      begin: Alignment.bottomLeft, end: Alignment.topRight,
+                      colors: [Color(0xD9000000), Color(0x40000000), Color(0x00000000)],
                     ),
-                  ),
-                ],
-              ),
             ),
-          ],
+          ),
+
+          // 3) content
+          Padding(
+            padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (b.tag.isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.24),
+                      borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                    ),
+                    child: Text(b.tag, style: robotoBold.copyWith(
+                        color: Colors.white, fontSize: 9.5, letterSpacing: 0.6)),
+                  ),
+                  const SizedBox(height: 9),
+                ],
+                Text(b.title,
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: robotoBold.copyWith(
+                        color: Colors.white, fontSize: Dimensions.fontSizeExtraLarge,
+                        letterSpacing: 0.2, shadows: shadow)),
+                const SizedBox(height: 4),
+                Text(b.subtitle,
+                    maxLines: 2, overflow: TextOverflow.ellipsis,
+                    style: robotoMedium.copyWith(
+                        color: Colors.white.withValues(alpha: 0.94),
+                        fontSize: Dimensions.fontSizeSmall, height: 1.25, shadows: shadow)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Background used when there's no image (or it fails to load): a diagonal gradient
+  /// from the banner's accent colour (falls back to slate when no accent).
+  Widget _fallbackBg(Color? accent) {
+    final c = accent ?? const Color(0xFF334155);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft, end: Alignment.bottomRight,
+          colors: [c, Color.lerp(c, Colors.black, 0.35) ?? c],
         ),
       ),
     );

@@ -4,6 +4,7 @@ import { Search, Plus, X, Pencil, Trash2, Loader2, Image as ImageIcon } from "lu
 import { Card, Pill } from "@/components/ui";
 import ImageInput from "@/components/ImageInput";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import ProductImport from "@/components/ProductImport";
 import { stockStatus } from "@/lib/data";
 import { inr } from "@/lib/format";
 
@@ -138,7 +139,10 @@ export default function ProductsPage() {
           {cats.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <span className="hidden sm:inline text-[12px] text-faint">{rows.length} items</span>
-        <button onClick={openNew} className="w-full sm:w-auto sm:ml-auto flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95"><Plus size={16} />Add Product</button>
+        <div className="w-full sm:w-auto sm:ml-auto flex flex-col sm:flex-row gap-2">
+          <ProductImport onDone={load} />
+          <button onClick={openNew} className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95"><Plus size={16} />Add Product</button>
+        </div>
       </div>
 
       <Card className="overflow-hidden">

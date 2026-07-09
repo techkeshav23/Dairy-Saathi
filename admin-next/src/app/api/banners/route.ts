@@ -8,7 +8,7 @@ export async function GET() {
   if (!supabaseAdmin) return NextResponse.json([]);
   const { data, error } = await supabaseAdmin
     .from("banners")
-    .select("id, title, subtitle, tag, accent_hex, image, image_url")
+    .select("id, title, subtitle, tag, accent_hex, image, image_url, active")
     .order("id");
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data ?? []);
@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     accent_hex: b.color ?? "#2b50d6",
     image: img,
     image_url: img,
+    active: b.active ?? true,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true, id });
@@ -37,16 +38,25 @@ export async function PATCH(req: NextRequest) {
   if (!supabaseAdmin) return NextResponse.json({ error: "Admin not configured" }, { status: 503 });
   const b = await req.json();
   if (!b?.id) return NextResponse.json({ error: "id required" }, { status: 400 });
-  const patch: Record<string, string> = {
-    title: b.title ?? "",
-    subtitle: b.subtitle ?? "",
-    tag: b.tag ?? "",
-    accent_hex: b.color ?? "#2b50d6",
-  };
-  if (b.image && String(b.image).trim()) {
-    patch.image = b.image;
-    patch.image_url = b.image;
+
+  // Toggle-only request (just id + active): flip visibility without touching the content.
+  const isToggleOnly =
+    typeof b.active === "boolean" && b.title === undefined && b.subtitle === undefined;
+
+  const patch: Record<string, string | boolean> = {};
+  if (typeof b.active === "boolean") patch.active = b.active;
+
+  if (!isToggleOnly) {
+    patch.title = b.title ?? "";
+    patch.subtitle = b.subtitle ?? "";
+    patch.tag = b.tag ?? "";
+    patch.accent_hex = b.color ?? "#2b50d6";
+    if (b.image && String(b.image).trim()) {
+      patch.image = b.image;
+      patch.image_url = b.image;
+    }
   }
+
   const { error } = await supabaseAdmin.from("banners").update(patch).eq("id", b.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

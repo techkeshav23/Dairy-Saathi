@@ -17,6 +17,13 @@ class SupabaseRepository implements Repository {
     return Color(int.tryParse(hex, radix: 16) ?? 0xFF1C6DD0);
   }
 
+  /// Like [_parseColor] but returns null for empty/invalid — used by banners so an
+  /// unset accent means "image only" (no colour tint), matching the admin toggle.
+  Color? _parseColorOrNull(String? hex) {
+    if (hex == null || hex.trim().isEmpty) return null;
+    return _parseColor(hex);
+  }
+
   Product _parseProduct(Map<String, dynamic> row) {
     final slabsData = row['price_slabs'] as List<dynamic>? ?? [];
     final slabs = slabsData.map((e) => PriceSlab(
@@ -106,13 +113,14 @@ class SupabaseRepository implements Repository {
 
   @override
   Future<List<BannerModel>> getBanners() async {
-    final res = await _client.from('banners').select();
+    // Only banners the distributor has toggled Active in the admin panel.
+    final res = await _client.from('banners').select().eq('active', true);
     return res.map((row) => BannerModel(
       title: row['title'] ?? '',
       subtitle: row['subtitle'] ?? '',
       tag: row['tag'] ?? '',
       image: row['image'] ?? '',
-      accent: _parseColor(row['accent_hex']),
+      accent: _parseColorOrNull(row['accent_hex']),
     )).toList();
   }
 

@@ -71,7 +71,11 @@ but note the palette moved from red → cobalt/graphite).
 | **Banners** | ✅ **CRUD** + image + colour-overlay toggle | [`/api/banners`](../admin-next/src/app/api/banners/route.ts) |
 | **Ledger** | ✅ live + manual khata entries (recharges) from admin | [`/api/ledger`](../admin-next/src/app/api/ledger/route.ts) |
 | **Settings** | ✅ persisted (`store_settings`, v21) | [`/api/settings`](../admin-next/src/app/api/settings/route.ts) |
-| Reports / Purchase | ⚠️ partly mock / read-only | — |
+| **Purchase / Stock-In** | ✅ live — supplier bill → `apply_purchase` RPC restocks real products + records `purchases` (v24) | [`/api/purchases`](../admin-next/src/app/api/purchases/route.ts) |
+| **Reports** | ✅ live charts + real business summary + working CSV exports (fabricated GST table removed) | `supabase-data.ts` + [`ReportDownloads`](../admin-next/src/components/ReportDownloads.tsx) |
+
+- **Banners:** admin **Active/Inactive toggle now persists** (`banners.active`, v24); the mobile app only fetches `active=true`. Earlier the admin showed 3 hardcoded demo banners as a fallback when the table was empty — that mock fallback is **removed**, so an empty table now honestly shows "No banners yet".
+- **Dashboard KPIs:** now show **real** values (no mock fallback to fake ₹48L revenue); delta % and sparkline are computed from real monthly data and hidden when there isn't enough history.
 
 - **Add Retailer** = `supabaseAdmin.auth.admin.createUser()` (email+password, pre-confirmed) **+** `app_users`
   profile insert (rolls back the auth user if the profile fails). That login then works in the mobile app.
@@ -98,6 +102,7 @@ Run `schema.sql` → **`schema_v23`** **in order**. Migrations **v11–v23** (ad
 | `schema_v21_settings.sql` | `store_settings` table (admin settings persistence) |
 | `schema_v22_retailer_notes.sql` | retailer notes / interaction log (Retailer 360) |
 | `schema_v23_qr_payments.sql` | QR payment mode: payment columns on orders, `payment_screenshots` bucket, updated `place_order` |
+| `schema_v24_banner_active_and_purchases.sql` | `banners.active` (admin toggle now persists; app shows only active) + `purchases`/`purchase_items` tables + `apply_purchase()` RPC (Purchase/Stock-In now real) |
 | `wipe_demo_data.sql` | utility — clears demo/seed data (not a migration; run only on purpose) |
 
 - **P0 Priority backlog is DONE:**

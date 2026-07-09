@@ -1,10 +1,12 @@
 "use client";
-import { useRef, useState } from "react";
-import { UploadCloud, FileText, Trash2, Plus, Check, Sparkles, CheckCircle2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { UploadCloud, FileText, Trash2, Plus, Check, Sparkles, CheckCircle2, Loader2 } from "lucide-react";
 import { Card, CardHead } from "@/components/ui";
-import { products, purchases } from "@/lib/data";
 import { extractBill, matchProduct, type Parsed } from "@/lib/pdf-extract";
 import { inr } from "@/lib/format";
+
+type CatalogProduct = { id: string; name: string };
+type PurchaseRow = { date: string; supplier: string; billNo: string; items: number; amount: number; file: string };
 
 export default function PurchasePage() {
   const [busy, setBusy] = useState(false);
@@ -12,19 +14,40 @@ export default function PurchasePage() {
   const [parsed, setParsed] = useState<Parsed | null>(null);
   const [, force] = useState(0);
   const [toast, setToast] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
+  const [purchases, setPurchases] = useState<PurchaseRow[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Live catalog (for matching) + recent purchases, both from the DB.
+  const loadData = useCallback(async () => {
+    try {
+      const [pRes, purRes] = await Promise.all([
+        fetch("/api/products", { cache: "no-store" }),
+        fetch("/api/purchases", { cache: "no-store" }),
+      ]);
+      const pData = await pRes.json();
+      const purData = await purRes.json();
+      setProducts(Array.isArray(pData) ? pData.map((p: { id: string; name: string }) => ({ id: p.id, name: p.name })) : []);
+      setPurchases(Array.isArray(purData) ? purData : []);
+    } catch {
+      setProducts([]); setPurchases([]);
+    }
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   const handleFile = async (file?: File) => {
     if (!file) return;
     setBusy(true); setFileName(file.name); setParsed(null);
-    const res = await extractBill(file);
+    const res = await extractBill(file, products);
     setParsed(res); setBusy(false);
   };
 
   const edit = (i: number, key: keyof Parsed["items"][number], val: string) => {
     if (!parsed) return;
     const it = parsed.items[i];
-    if (key === "name") { it.name = val; it.match = matchProduct(val); }
+    if (key === "name") { it.name = val; it.match = matchProduct(val, products); }
     else if (key === "unit") it.unit = val;
     else if (key === "match") it.match = Number(val);
     else if (key === "qty") it.qty = Number(val) || 0;
@@ -36,18 +59,36 @@ export default function PurchasePage() {
   const del = (i: number) => { parsed!.items.splice(i, 1); force((v) => v + 1); };
   const addRow = () => { parsed!.items.push({ name: "", qty: 1, unit: "EA", rate: 0, amount: 0, match: -1 }); force((v) => v + 1); };
 
-  const commit = () => {
-    if (!parsed) return;
-    let updated = 0, added = 0, total = 0;
-    parsed.items.forEach((it) => {
-      const qty = +it.qty || 0; total += +it.amount || 0;
-      if (it.match >= 0) { products[it.match].stock += qty; updated++; }
-      else { products.unshift({ name: it.name, cat: "Uncategorised", mrp: Math.round(it.rate * 1.2), rate: it.rate, resale: Math.round(it.rate * 1.1), moq: 1, stock: qty, pack: "1 " + (it.unit || "EA") }); added++; }
-    });
-    purchases.unshift({ date: parsed.meta.date, supplier: parsed.meta.supplier, billNo: parsed.meta.billNo, items: parsed.items.length, amount: total, file: fileName });
-    setParsed(null); setFileName("");
-    setToast(`Stock updated · ${updated} restocked, ${added} new added`);
-    setTimeout(() => setToast(""), 3200);
+  const commit = async () => {
+    if (!parsed || saving) return;
+    setSaving(true);
+    // Map each row's match index → the real product id (or null for a new/unmatched item).
+    const items = parsed.items.map((it) => ({
+      product_id: it.match >= 0 ? products[it.match]?.id ?? null : null,
+      name: it.name, qty: +it.qty || 0, unit: it.unit || "EA",
+      rate: +it.rate || 0, amount: +it.amount || 0,
+    }));
+    const matched = items.filter((it) => it.product_id).length;
+    try {
+      const res = await fetch("/api/purchases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          supplier: parsed.meta.supplier, billNo: parsed.meta.billNo, date: parsed.meta.date,
+          file: fileName, items,
+        }),
+      });
+      const j = await res.json();
+      if (!res.ok) { setToast("Save failed: " + (j.error || "unknown")); setSaving(false); setTimeout(() => setToast(""), 4000); return; }
+      setParsed(null); setFileName("");
+      setToast(`Purchase saved · ${matched} product${matched === 1 ? "" : "s"} restocked, ${items.length - matched} unmatched`);
+      await loadData();
+    } catch {
+      setToast("Network error while saving purchase");
+    } finally {
+      setSaving(false);
+      setTimeout(() => setToast(""), 3600);
+    }
   };
 
   const totQty = parsed?.items.reduce((s, x) => s + (+x.qty || 0), 0) ?? 0;
@@ -113,8 +154,8 @@ export default function PurchasePage() {
                       <td className="px-4 py-2">
                         <select value={it.match} onChange={(e) => edit(i, "match", e.target.value)}
                           className={`max-w-[190px] rounded-md border px-2 py-1.5 text-[12.5px] font-medium outline-none ${it.match < 0 ? "border-warning-soft bg-warning-soft text-warning" : "border-success-soft bg-success-soft text-success"}`}>
-                          <option value={-1}>+ New product</option>
-                          {products.map((p, idx) => <option key={idx} value={idx}>{p.name}</option>)}
+                          <option value={-1}>Unmatched (no stock update)</option>
+                          {products.map((p, idx) => <option key={p.id} value={idx}>{p.name}</option>)}
                         </select>
                       </td>
                       <td className="px-4 py-2 text-right"><button onClick={() => del(i)} className="text-faint hover:text-brand"><Trash2 size={16} /></button></td>
@@ -128,8 +169,10 @@ export default function PurchasePage() {
               <div className="text-[15px] font-semibold">Total: <b className="text-brand">{inr(totAmt)}</b></div>
             </div>
             <div className="flex gap-3 px-5 py-4">
-              <button onClick={() => { setParsed(null); setFileName(""); }} className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold">Discard</button>
-              <button onClick={commit} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,.12)]"><Check size={16} />Add {parsed.items.length} items to Inventory</button>
+              <button onClick={() => { setParsed(null); setFileName(""); }} disabled={saving} className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold disabled:opacity-50">Discard</button>
+              <button onClick={commit} disabled={saving} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,.12)] disabled:opacity-60">
+                {saving ? <Loader2 size={16} className="spin" /> : <Check size={16} />}{saving ? "Saving…" : `Add ${parsed.items.length} items to Inventory`}
+              </button>
             </div>
           </Card>
         </>
@@ -176,9 +219,10 @@ export default function PurchasePage() {
                   <td className="px-5 py-3 font-medium text-info">{p.billNo}</td>
                   <td className="tnum px-5 py-3 text-right">{p.items}</td>
                   <td className="tnum px-5 py-3 text-right font-medium">{inr(p.amount)}</td>
-                  <td className="px-5 py-3"><span className="inline-flex items-center gap-1.5 text-muted"><FileText size={14} className="text-faint" />{p.file}</span></td>
+                  <td className="px-5 py-3"><span className="inline-flex items-center gap-1.5 text-muted"><FileText size={14} className="text-faint" />{p.file || "—"}</span></td>
                 </tr>
               ))}
+              {purchases.length === 0 && <tr><td colSpan={6} className="px-5 py-10 text-center text-muted">No purchases yet. Upload a supplier bill above to stock in.</td></tr>}
             </tbody>
           </table>
         </div>

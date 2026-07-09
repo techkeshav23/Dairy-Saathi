@@ -1,11 +1,12 @@
-import { products } from "./data";
-
 export type PItem = { name: string; qty: number; unit: string; rate: number; amount: number; match: number };
 export type Parsed = { meta: { supplier: string; billNo: string; date: string }; items: PItem[]; demo: boolean };
 
+// Matching is done against the LIVE catalog passed in (id + name), not a hardcoded list.
+export type MatchProduct = { name: string };
+
 function norm(s: string) { return (s || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim(); }
 
-export function matchProduct(name: string): number {
+export function matchProduct(name: string, products: MatchProduct[]): number {
   const a = norm(name).split(" ").filter((w) => w.length >= 3);
   let best = -1, score = 0;
   products.forEach((p, idx) => {
@@ -67,7 +68,7 @@ function parseMeta(lines: string[]) {
   return { supplier: supplier || "Supplier", billNo: bill || "PUR-" + (1000 + (lines.length % 9000)), date: date || todayStr() };
 }
 
-export async function extractBill(file: File): Promise<Parsed> {
+export async function extractBill(file: File, products: MatchProduct[]): Promise<Parsed> {
   try {
     if (/\.pdf$/i.test(file.name)) {
       const pdfjs = await import("pdfjs-dist");
@@ -94,12 +95,12 @@ export async function extractBill(file: File): Promise<Parsed> {
       }
       const items = parseItems(lines);
       if (items.length >= 2) {
-        items.forEach((it) => (it.match = matchProduct(it.name)));
+        items.forEach((it) => (it.match = matchProduct(it.name, products)));
         return { meta: parseMeta(lines), items, demo: false };
       }
     }
   } catch { /* fall through */ }
   const items = demoItems();
-  items.forEach((it) => (it.match = matchProduct(it.name)));
+  items.forEach((it) => (it.match = matchProduct(it.name, products)));
   return { meta: { supplier: "Aggarwal Distributors", billNo: "PUR-" + (1000 + (Date.now() % 9000)), date: todayStr() }, items, demo: true };
 }

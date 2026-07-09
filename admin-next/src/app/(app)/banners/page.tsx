@@ -45,7 +45,7 @@ export default function BannersPage() {
       const data = await res.json();
       if (Array.isArray(data)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setItems(data.map((b: any) => ({ id: b.id, title: b.title || "", sub: b.subtitle || "", tag: b.tag || "", color: b.accent_hex ?? "#2b50d6", image: b.image || b.image_url || "", active: true })));
+        setItems(data.map((b: any) => ({ id: b.id, title: b.title || "", sub: b.subtitle || "", tag: b.tag || "", color: b.accent_hex ?? "#2b50d6", image: b.image || b.image_url || "", active: b.active !== false })));
       } else {
         setItems([]);
       }
@@ -57,7 +57,24 @@ export default function BannersPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const toggle = (id: string) => setItems((p) => p.map((b) => (b.id === id ? { ...b, active: !b.active } : b)));
+  const toggle = async (id: string) => {
+    const target = items.find((b) => b.id === id);
+    if (!target) return;
+    const next = !target.active;
+    // optimistic flip
+    setItems((p) => p.map((b) => (b.id === id ? { ...b, active: next } : b)));
+    try {
+      const res = await fetch("/api/banners", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, active: next }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      // revert on failure
+      setItems((p) => p.map((b) => (b.id === id ? { ...b, active: !next } : b)));
+    }
+  };
 
   const save = async () => {
     if (!modal || (!modal.title.trim() && !modal.image.trim())) { setErr("Add a title or an image"); return; }
@@ -67,7 +84,7 @@ export default function BannersPage() {
       const res = await fetch("/api/banners", {
         method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: modal.id, title: modal.title, subtitle: modal.sub, tag: modal.tag, color: modal.color, image: modal.image }),
+        body: JSON.stringify({ id: modal.id, title: modal.title, subtitle: modal.sub, tag: modal.tag, color: modal.color, image: modal.image, active: modal.active }),
       });
       const j = await res.json();
       if (!res.ok) { setErr(j.error || "Save failed"); setSaving(false); return; }

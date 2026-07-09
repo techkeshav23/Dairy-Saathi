@@ -173,14 +173,14 @@ export async function getBanners(): Promise<Banner[]> {
   try {
     const { data, error } = await src
       .from("banners")
-      .select("title, subtitle, tag, image, accent_hex");
+      .select("title, subtitle, tag, image, accent_hex, active");
     if (error) throw error;
 
     return (data as any[]).map((b) => ({
       title: b.title || "",
       sub: b.subtitle || "",
       tag: b.tag || "",
-      active: true,
+      active: b.active !== false,
       color: b.accent_hex || "#e2231a",
     }));
   } catch (err) {
@@ -190,18 +190,46 @@ export async function getBanners(): Promise<Banner[]> {
 }
 
 // ---------------------------------------------------------------- Dashboard KPIs
-export async function getDashboardKpis(): Promise<{
+export type KpiTrend = { spark: number[]; delta: number; down: boolean } | null;
+export type DashboardKpis = {
   revenue: number;
   orders: number;
   retailers: number;
   outstanding: number;
-}> {
-  const fallback = { revenue: 0, orders: 0, retailers: 0, outstanding: 0 };
+  trend: { revenue: KpiTrend; orders: KpiTrend; retailers: KpiTrend };
+};
+
+// Build an 8-month key list ending at the current month.
+function last8MonthKeys(now: Date): string[] {
+  const keys: string[] = [];
+  for (let i = 7; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    keys.push(`${d.getFullYear()}-${d.getMonth()}`);
+  }
+  return keys;
+}
+
+// Turn a monthly series into a spark + last-vs-previous-month delta.
+function seriesToTrend(series: number[]): KpiTrend {
+  if (series.length < 2 || series.every((v) => v === 0)) return null;
+  const last = series[series.length - 1];
+  const prev = series[series.length - 2];
+  let delta = 0;
+  if (prev > 0) delta = ((last - prev) / prev) * 100;
+  else if (last > 0) delta = 100;
+  return { spark: series, delta: Math.round(delta * 10) / 10, down: delta < 0 };
+}
+
+export async function getDashboardKpis(): Promise<DashboardKpis> {
+  const fallback: DashboardKpis = {
+    revenue: 0, orders: 0, retailers: 0, outstanding: 0,
+    trend: { revenue: null, orders: null, retailers: null },
+  };
   if (!supabaseAdmin) return fallback;
   try {
     const [oRes, uRes, lRes] = await Promise.all([
-      supabaseAdmin.from("orders").select("total, status"),
-      supabaseAdmin.from("app_users").select("id"),
+      supabaseAdmin.from("orders").select("total, status, created_at"),
+      supabaseAdmin.from("app_users").select("id, created_at"),
       supabaseAdmin.from("ledger_entries").select("type, amount"),
     ]);
     if (oRes.error) throw oRes.error;
@@ -209,20 +237,46 @@ export async function getDashboardKpis(): Promise<{
     if (lRes.error) throw lRes.error;
 
     const od = (oRes.data as any[]) ?? [];
-    const revenue = od
-      .filter((o) => String(o.status).toLowerCase() !== "cancelled")
-      .reduce((s, o) => s + (Number(o.total) || 0), 0);
+    const live = od.filter((o) => String(o.status).toLowerCase() !== "cancelled");
+    const revenue = live.reduce((s, o) => s + (Number(o.total) || 0), 0);
 
     const outstanding = ((lRes.data as any[]) ?? []).reduce(
       (s, l) => s + (l.type === "debit" ? Number(l.amount) : -Number(l.amount)),
       0,
     );
 
+    // ---- real monthly trend series
+    const now = new Date();
+    const keys = last8MonthKeys(now);
+    const revBucket = new Map(keys.map((k) => [k, 0]));
+    const ordBucket = new Map(keys.map((k) => [k, 0]));
+    for (const o of live) {
+      const d = o.created_at ? new Date(o.created_at) : null;
+      if (!d) continue;
+      const k = `${d.getFullYear()}-${d.getMonth()}`;
+      if (revBucket.has(k)) {
+        revBucket.set(k, (revBucket.get(k) || 0) + (Number(o.total) || 0));
+        ordBucket.set(k, (ordBucket.get(k) || 0) + 1);
+      }
+    }
+    // retailers: cumulative signup count at the end of each month
+    const users = (uRes.data as any[]) ?? [];
+    const retSeries = keys.map((k) => {
+      const [y, m] = k.split("-").map(Number);
+      const end = new Date(y, m + 1, 1).getTime();
+      return users.filter((u) => u.created_at && new Date(u.created_at).getTime() < end).length;
+    });
+
     return {
       revenue,
       orders: od.length,
-      retailers: (uRes.data as any[])?.length ?? 0,
+      retailers: users.length,
       outstanding: Math.max(0, Math.round(outstanding)),
+      trend: {
+        revenue: seriesToTrend(keys.map((k) => revBucket.get(k) || 0)),
+        orders: seriesToTrend(keys.map((k) => ordBucket.get(k) || 0)),
+        retailers: seriesToTrend(retSeries),
+      },
     };
   } catch (err) {
     console.error("getDashboardKpis:", err);

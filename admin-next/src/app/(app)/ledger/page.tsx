@@ -1,6 +1,6 @@
 import { Download } from "lucide-react";
 import { Card, CardHead, Pill } from "@/components/ui";
-import { ledger as mockLedger, recharges } from "@/lib/data";
+import { ledger as mockLedger } from "@/lib/data";
 import { getLedger } from "@/lib/supabase-data";
 import { useSupabase } from "@/lib/supabase";
 import { supabaseAdmin } from "@/lib/supabase-admin";

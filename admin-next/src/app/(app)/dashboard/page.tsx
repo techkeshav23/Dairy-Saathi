@@ -3,10 +3,8 @@ import { ChevronRight } from "lucide-react";
 import { Card, CardHead, Pill } from "@/components/ui";
 import { KpiCard } from "@/components/kpi";
 import { SalesArea, CategoryDonut, TopProductsBars } from "@/components/charts";
-import { kpis } from "@/lib/data";
 import { inr } from "@/lib/format";
 import { getDashboardKpis, getSalesTrend, getCategorySplit, getTopProducts, getOrders } from "@/lib/supabase-data";
-import { useSupabase } from "@/lib/supabase";
 
 export default async function DashboardPage() {
   const [live, salesTrend, catSplit, topProds, recentOrders] = await Promise.all([
@@ -17,36 +15,34 @@ export default async function DashboardPage() {
     getOrders(),
   ]);
 
-  const displayKpis = kpis.map((k) => {
-    if (useSupabase) {
-      const liveValue = live[k.key as keyof typeof live];
-      if (liveValue !== undefined && liveValue > 0) {
-        return { ...k, value: liveValue };
-      }
-    }
-    return k;
-  });
+  // All values are live from Supabase; trend (delta + sparkline) is computed from real
+  // monthly data and is simply hidden when there isn't enough history to be meaningful.
+  const displayKpis = [
+    { key: "revenue", label: "Total Revenue", value: live.revenue, prefix: "₹", trend: live.trend.revenue },
+    { key: "orders", label: "Total Orders", value: live.orders, prefix: "", trend: live.trend.orders },
+    { key: "retailers", label: "Active Retailers", value: live.retailers, prefix: "", trend: live.trend.retailers },
+    { key: "outstanding", label: "Outstanding (Khata)", value: live.outstanding, prefix: "₹", trend: null },
+  ];
 
   return (
     <div className="space-y-5">
       {/* KPIs */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {displayKpis.map((k, i) => (
-          <KpiCard 
-            key={k.key} 
-            label={k.label} 
-            value={k.value} 
-            prefix={k.prefix} 
-            delta={k.delta} 
-            down={k.down} 
-            spark={k.spark} 
-            delay={i * 70} 
+          <KpiCard
+            key={k.key}
+            label={k.label}
+            value={k.value}
+            prefix={k.prefix}
+            delta={k.trend?.delta}
+            down={k.trend?.down}
+            spark={k.trend?.spark}
+            delay={i * 70}
           />
         ))}
       </div>
 
       {/* charts */}
-      {/* TODO: wire up live data for charts */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHead title="Sales Performance" action={
@@ -71,7 +67,6 @@ export default async function DashboardPage() {
       </div>
 
       {/* recent + top */}
-      {/* TODO: wire up live data for recent orders and top products */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHead title="Recent Orders" action={
