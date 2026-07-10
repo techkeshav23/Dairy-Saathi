@@ -7,6 +7,9 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+// Standard password policy: 8+ chars with an uppercase, a lowercase and a number.
+const PW_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
 export async function GET() {
   if (!supabaseAdmin) return NextResponse.json([]);
   const [uRes, lRes] = await Promise.all([
@@ -45,15 +48,17 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   if (!supabaseAdmin) return NextResponse.json({ error: "Admin not configured" }, { status: 503 });
   const b = await req.json();
-  if (!b?.email?.trim() || !b?.password) return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
-  if (String(b.password).length < 6) return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
+  if (!b?.email?.trim()) return NextResponse.json({ error: "Email is required" }, { status: 400 });
+  if (!b?.password || !PW_RE.test(String(b.password))) return NextResponse.json({ error: "Password must be 8+ characters with an uppercase, a lowercase and a number" }, { status: 400 });
+  if (String(b.phone ?? "").replace(/\D/g, "").length < 10) return NextResponse.json({ error: "A valid 10-digit phone number is required" }, { status: 400 });
+  if (!String(b.idNumber ?? "").trim()) return NextResponse.json({ error: "ID proof (GST / PAN / Aadhaar) is required" }, { status: 400 });
 
   // 1) create the auth user (email + password, pre-confirmed)
   const { data: created, error: aErr } = await supabaseAdmin.auth.admin.createUser({
     email: b.email.trim(),
     password: b.password,
     email_confirm: true,
-    user_metadata: { business_name: b.name ?? "", owner_name: b.owner ?? "" },
+    user_metadata: { business_name: b.name ?? "", owner_name: b.owner ?? "", created_by: "admin" },
   });
   if (aErr || !created?.user) return NextResponse.json({ error: aErr?.message || "Could not create login" }, { status: 400 });
 
@@ -73,6 +78,8 @@ export async function POST(req: NextRequest) {
     name: b.owner ?? "",
     area: b.area ?? "",
     gst: b.gst ?? "",
+    id_type: b.idType ?? null,
+    id_number: (b.idNumber && String(b.idNumber).trim()) || null,
     credit_limit: Number(b.limit) || 0,
     status: "active",
     created_by: "admin",
@@ -97,17 +104,21 @@ export async function PATCH(req: NextRequest) {
   if (b.area !== undefined) patch.area = b.area;
   if (b.phone !== undefined) patch.phone = b.phone ? String(b.phone) : null;
   if (b.gst !== undefined) patch.gst = b.gst;
+  if (b.idType !== undefined) patch.id_type = b.idType;
+  if (b.idNumber !== undefined) patch.id_number = (b.idNumber && String(b.idNumber).trim()) || null;
   if (b.limit !== undefined) patch.credit_limit = Number(b.limit) || 0;
   if (b.status !== undefined) patch.status = b.status;
   if (b.role !== undefined) patch.role = b.role;
 
+  // optional password reset — enforce the same policy
+  if (b.password) {
+    if (!PW_RE.test(String(b.password))) return NextResponse.json({ error: "Password must be 8+ characters with an uppercase, a lowercase and a number" }, { status: 400 });
+    await supabaseAdmin.auth.admin.updateUserById(b.id, { password: b.password });
+  }
+
   if (Object.keys(patch).length) {
     const { error } = await supabaseAdmin.from("app_users").update(patch).eq("id", b.id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  // optional password reset
-  if (b.password) {
-    await supabaseAdmin.auth.admin.updateUserById(b.id, { password: b.password });
   }
   return NextResponse.json({ ok: true });
 }

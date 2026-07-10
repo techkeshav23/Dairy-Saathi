@@ -47,6 +47,8 @@ class SupabaseRepository implements Repository {
       isPopular: row['is_popular'] == true,
       isFeatured: row['is_featured'] == true,
       description: row['description'] ?? '',
+      resalePriceValue: double.tryParse('${row['resale_price']}') ?? 0,
+      eaPerKg: double.tryParse('${row['ea_per_kg']}') ?? 0,
     );
   }
 

@@ -29,6 +29,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   File? _paymentScreenshot;
   final ImagePicker _picker = ImagePicker();
 
+  String? _qrImageUrl;
+  String? _upiId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMerchantQr();
+  }
+
+  /// Fetch the distributor's UPI id + QR image (set in the admin Settings) so the
+  /// retailer scans the real merchant QR, not a placeholder.
+  Future<void> _loadMerchantQr() async {
+    try {
+      final row = await Supabase.instance.client
+          .from('store_settings')
+          .select('upi_id, qr_image_url')
+          .eq('id', 1)
+          .maybeSingle();
+      if (!mounted || row == null) return;
+      setState(() {
+        _upiId = (row['upi_id'] as String?)?.trim();
+        _qrImageUrl = (row['qr_image_url'] as String?)?.trim();
+      });
+    } catch (_) {
+      // non-fatal — the QR section falls back to a generic prompt
+    }
+  }
+
   Future<void> _pickScreenshot() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -99,11 +127,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
       final address = user!.address;
 
-      // Map cart items for the order service
+      // Map cart items for the order service. Always send the BASE (EA) quantity — a KG
+      // line is `ea_per_kg` pieces — because the server prices and stocks in EA.
       final itemsData = cart.items.map((item) {
         return {
           'product_id': item.product.id,
-          'qty': item.quantity,
+          'qty': item.baseQty,
           'unit_price': item.unitPrice,
         };
       }).toList();
@@ -230,13 +259,45 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 8),
-                  // Dummy QR Code - Replace with network image or actual logic later
+                  // Real merchant QR from the distributor's settings (falls back to a
+                  // prompt if not configured yet).
                   Container(
-                    width: 150,
-                    height: 150,
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.qr_code_2, size: 100, color: Colors.black54),
+                    width: 170,
+                    height: 170,
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(Dimensions.radiusMedium),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: (_qrImageUrl != null && _qrImageUrl!.isNotEmpty)
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                            child: Image.network(_qrImageUrl!, fit: BoxFit.contain,
+                                errorBuilder: (_, _, _) => const Center(
+                                    child: Icon(Icons.qr_code_2, size: 90, color: Colors.black38)),
+                                loadingBuilder: (_, child, progress) => progress == null
+                                    ? child
+                                    : const Center(child: CircularProgressIndicator(strokeWidth: 2))),
+                          )
+                        : Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.qr_code_2, size: 70, color: Colors.grey[400]),
+                                const SizedBox(height: 6),
+                                Text('QR not set up yet',
+                                    style: robotoRegular.copyWith(
+                                        color: AppColors.textLight, fontSize: Dimensions.fontSizeExtraSmall)),
+                              ],
+                            ),
+                          ),
                   ),
+                  if (_upiId != null && _upiId!.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Text('UPI: $_upiId',
+                        style: robotoBold.copyWith(fontSize: Dimensions.fontSizeSmall, color: AppColors.textDark)),
+                  ],
                   const SizedBox(height: 16),
                   if (_paymentScreenshot != null)
                     Stack(

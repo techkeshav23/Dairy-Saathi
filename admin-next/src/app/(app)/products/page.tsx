@@ -8,10 +8,10 @@ import ProductImport from "@/components/ProductImport";
 import { stockStatus } from "@/lib/data";
 import { inr } from "@/lib/format";
 
-type P = { id: string; name: string; cat: string; mrp: number; rate: number; resale: number; moq: number; stock: number; pack: string; image: string; slabs?: { min_qty: number; price_per_unit: number }[] };
+type P = { id: string; name: string; cat: string; mrp: number; rate: number; resale: number; eaPerKg: number; moq: number; stock: number; pack: string; image: string; slabs?: { min_qty: number; price_per_unit: number }[] };
 
 const TINTS = [["#eef2fe", "#2b50d6"], ["#faf0dc", "#c07708"], ["#e6f6ee", "#0f9d63"], ["#f1f3f7", "#586172"]];
-const BLANK: P = { id: "", name: "", cat: "", mrp: 0, rate: 0, resale: 0, moq: 1, stock: 0, pack: "1 EA", image: "", slabs: [{ min_qty: 1, price_per_unit: 0 }] };
+const BLANK: P = { id: "", name: "", cat: "", mrp: 0, rate: 0, resale: 0, eaPerKg: 0, moq: 1, stock: 0, pack: "1 EA", image: "", slabs: [{ min_qty: 1, price_per_unit: 0 }] };
 
 export default function ProductsPage() {
   const [q, setQ] = useState("");
@@ -125,7 +125,7 @@ export default function ProductsPage() {
     } catch { /* ignore */ }
   };
 
-  const NUM: (keyof P)[] = ["mrp", "rate", "resale", "moq", "stock"];
+  const NUM: (keyof P)[] = ["mrp", "rate", "resale", "eaPerKg", "moq", "stock"];
 
   return (
     <div className="space-y-4">
@@ -229,9 +229,9 @@ export default function ProductsPage() {
                     <img src={modal.image} alt="" className="h-10 w-10 shrink-0 rounded-lg border border-border object-cover" />
                   : <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-dashed border-border text-faint"><ImageIcon size={16} /></div>}
               </div>
-              {(["mrp", "resale", "moq", "stock", "pack"] as (keyof P)[]).map((key) => (
+              {(["mrp", "resale", "eaPerKg", "moq", "stock", "pack"] as (keyof P)[]).map((key) => (
                 <label key={key} className="block">
-                  <span className="mb-1 block text-[12px] font-medium capitalize text-muted">{key === "pack" ? "Pack" : key}</span>
+                  <span className="mb-1 block text-[12px] font-medium capitalize text-muted">{key === "pack" ? "Pack" : key === "eaPerKg" ? "EA per KG (0 = no KG)" : key}</span>
                   <input
                     type={NUM.includes(key) ? "number" : "text"}
                     value={modal[key] as string | number}

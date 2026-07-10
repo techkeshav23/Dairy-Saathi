@@ -18,7 +18,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final TextEditingController _name;
   late final TextEditingController _shop;
   late final TextEditingController _address;
-  late final TextEditingController _gstin;
+  late final TextEditingController _area;
 
   @override
   void initState() {
@@ -27,17 +27,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _name = TextEditingController(text: user?.name ?? '');
     _shop = TextEditingController(text: user?.shopName ?? '');
     _address = TextEditingController(text: user?.address ?? '');
-    _gstin = TextEditingController(text: user?.gstin ?? '');
+    _area = TextEditingController(text: user?.area ?? '');
   }
 
   Future<void> _save() async {
     final auth = context.read<AuthProvider>();
+    final current = auth.user;
     await auth.updateProfile(UserModel(
       name: _name.text.trim(),
       shopName: _shop.text.trim(),
-      phone: auth.user?.phone ?? '',
+      phone: current?.phone ?? '',
+      email: current?.email ?? '',
       address: _address.text.trim(),
-      gstin: _gstin.text.trim(),
+      area: _area.text.trim(),
+      gstin: current?.gstin ?? '',
+      idType: current?.idType ?? 'gst',
+      idNumber: current?.idNumber ?? '',
     ));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -51,7 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _name.dispose();
     _shop.dispose();
     _address.dispose();
-    _gstin.dispose();
+    _area.dispose();
     super.dispose();
   }
 
@@ -68,17 +73,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
           CustomTextField(hint: 'Shop / business name', label: 'Shop Name', controller: _shop, prefixIcon: Icons.storefront_outlined),
           const SizedBox(height: Dimensions.paddingSizeDefault),
           CustomTextField(
+            hint: 'Email', label: 'Email (login)',
+            controller: TextEditingController(text: user?.email ?? ''),
+            readOnly: true, prefixIcon: Icons.mail_outline,
+          ),
+          const SizedBox(height: Dimensions.paddingSizeDefault),
+          CustomTextField(
             hint: 'Mobile number', label: 'Mobile Number',
             controller: TextEditingController(text: '+91 ${user?.phone ?? ""}'),
             readOnly: true, prefixIcon: Icons.phone_android,
           ),
+          const SizedBox(height: Dimensions.paddingSizeDefault),
+          CustomTextField(hint: 'City / area', label: 'Area', controller: _area, prefixIcon: Icons.location_city_outlined),
           const SizedBox(height: Dimensions.paddingSizeDefault),
           CustomTextField(
             hint: 'Shop address', label: 'Delivery Address',
             controller: _address, maxLines: 3, prefixIcon: Icons.location_on_outlined,
           ),
           const SizedBox(height: Dimensions.paddingSizeDefault),
-          CustomTextField(hint: 'GSTIN (optional)', label: 'GSTIN', controller: _gstin, prefixIcon: Icons.badge_outlined),
+          CustomTextField(
+            hint: 'ID proof', label: 'ID Proof',
+            controller: TextEditingController(text: user?.idLabel ?? 'Not provided'),
+            readOnly: true, prefixIcon: Icons.badge_outlined,
+          ),
           const SizedBox(height: Dimensions.paddingSizeExtraLarge),
           CustomButton(text: 'Save Changes', onPressed: _save, icon: Icons.check),
         ],

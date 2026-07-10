@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:my_order_pro/common/widgets/app_logo.dart';
 import 'package:my_order_pro/common/widgets/custom_button.dart';
@@ -67,10 +68,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  InputDecoration _decoration(String hint, IconData icon, {Widget? suffix}) => InputDecoration(
+  InputDecoration _decoration(String hint, IconData icon, {Widget? suffix, String? prefixText}) => InputDecoration(
         hintText: hint,
         hintStyle: robotoRegular.copyWith(color: AppColors.textLight),
         prefixIcon: Icon(icon, color: AppColors.textLight, size: 20),
+        prefixText: prefixText,
+        prefixStyle: robotoBold.copyWith(color: AppColors.textDark, fontSize: Dimensions.fontSizeDefault),
+        counterText: '',
         suffixIcon: suffix,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault), borderSide: const BorderSide(color: AppColors.border)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault), borderSide: const BorderSide(color: AppColors.border)),
@@ -110,7 +114,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 _label('Shop Name *'),
                 TextFormField(controller: _shop, textCapitalization: TextCapitalization.words,
                     validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your shop name' : null,
-                    decoration: _decoration('e.g. Sharma Kirana Store', Icons.storefront_outlined)),
+                    decoration: _decoration('Shop / business name', Icons.storefront_outlined)),
                 const SizedBox(height: 14),
 
                 _label('Owner Name *'),
@@ -126,17 +130,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim())) return 'Enter a valid email';
                       return null;
                     },
-                    decoration: _decoration('you@shop.com', Icons.mail_outline)),
+                    decoration: _decoration('Enter email address', Icons.mail_outline)),
                 const SizedBox(height: 14),
 
                 _label('Password *'),
                 TextFormField(controller: _password, obscureText: _obscure,
-                    validator: (v) => (v == null || v.length < 6) ? 'At least 6 characters' : null,
+                    validator: _validatePassword,
                     decoration: _decoration('Create a password', Icons.lock_outline,
                         suffix: IconButton(
                           icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: AppColors.textLight, size: 20),
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ))),
+                Padding(
+                  padding: const EdgeInsets.only(top: 5, left: 2),
+                  child: Text('8+ characters with uppercase, lowercase & a number',
+                      style: robotoRegular.copyWith(color: AppColors.textLight, fontSize: Dimensions.fontSizeExtraSmall)),
+                ),
                 const SizedBox(height: 14),
 
                 _label('Confirm Password *'),
@@ -153,9 +162,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ))),
                 const SizedBox(height: 14),
 
-                _label('Phone (optional)'),
-                TextFormField(controller: _phone, keyboardType: TextInputType.phone,
-                    decoration: _decoration('10-digit mobile', Icons.phone_outlined)),
+                _label('Phone *'),
+                TextFormField(controller: _phone, keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                    validator: (v) {
+                      final digits = (v ?? '').replaceAll(RegExp(r'\D'), '');
+                      if (digits.length != 10) return 'Enter a valid 10-digit mobile number';
+                      return null;
+                    },
+                    decoration: _decoration('10-digit mobile', Icons.phone_outlined, prefixText: '+91 ')),
                 const SizedBox(height: 14),
 
                 _label('Area (optional)'),
@@ -175,6 +193,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: _idNumber,
                   textCapitalization: _idType == 'aadhaar' ? TextCapitalization.none : TextCapitalization.characters,
                   keyboardType: _idType == 'aadhaar' ? TextInputType.number : TextInputType.text,
+                  inputFormatters: _idFormatters,
                   validator: _validateId,
                   decoration: _decoration(_idHint, Icons.badge_outlined),
                 ),
@@ -211,6 +230,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ? '10-character PAN (e.g. ABCDE1234F)'
           : '12-digit Aadhaar number';
 
+  // Per-type input rules: cap the length and restrict characters (uppercase alphanumeric
+  // for GST/PAN, digits only for Aadhaar) so no invalid/overlong value can be typed.
+  List<TextInputFormatter> get _idFormatters {
+    final upper = TextInputFormatter.withFunction(
+        (oldV, newV) => newV.copyWith(text: newV.text.toUpperCase()));
+    switch (_idType) {
+      case 'aadhaar':
+        return [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(12)];
+      case 'pan':
+        return [FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')), LengthLimitingTextInputFormatter(10), upper];
+      case 'gst':
+      default:
+        return [FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')), LengthLimitingTextInputFormatter(15), upper];
+    }
+  }
+
   Widget _idChip(String label, String value) {
     final selected = _idType == value;
     return Expanded(
@@ -233,6 +268,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
       ),
     );
+  }
+
+  String? _validatePassword(String? v) {
+    final s = v ?? '';
+    if (s.length < 8) return 'At least 8 characters';
+    if (!RegExp(r'[a-z]').hasMatch(s)) return 'Add a lowercase letter';
+    if (!RegExp(r'[A-Z]').hasMatch(s)) return 'Add an uppercase letter';
+    if (!RegExp(r'\d').hasMatch(s)) return 'Add a number';
+    return null;
   }
 
   String? _validateId(String? v) {

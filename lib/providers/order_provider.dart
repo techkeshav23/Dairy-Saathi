@@ -23,14 +23,19 @@ class OrderProvider extends ChangeNotifier {
   /// Dynamic credit limit fetched from the backend (or default 50k).
   double get creditLimit => prefs.getDouble('saathi_credit_limit') ?? 50000.0;
 
+  /// Outstanding khata balance = the running total of the loaded ledger
+  /// (debits add, credits subtract). The server ledger is the source of truth
+  /// once loaded; falls back to the cached server value until it is.
   double get outstanding {
-    // We add the local session ledger to the server outstanding balance
-    double serverOutstanding = prefs.getDouble('saathi_outstanding') ?? 0.0;
-    double localSessionBal = 0;
-    for (final e in _ledger.where((e) => e.id.startsWith('l_SA'))) {
-      localSessionBal += e.isDebit ? e.amount : -e.amount;
+    if (_ledger.isEmpty) {
+      final cached = prefs.getDouble('saathi_outstanding') ?? 0.0;
+      return cached < 0 ? 0 : cached;
     }
-    return serverOutstanding + localSessionBal;
+    double bal = 0;
+    for (final e in _ledger) {
+      bal += e.isDebit ? e.amount : -e.amount;
+    }
+    return bal < 0 ? 0 : bal;
   }
 
   /// Remaining credit the retailer can still spend on khata.

@@ -15,6 +15,10 @@ class AccountPreferencesScreen extends StatelessWidget {
     final address = (user?.address.isNotEmpty ?? false)
         ? user!.address
         : 'Address not provided';
+    final owner = (user?.name.isNotEmpty ?? false) ? user!.name : 'Not set';
+    final email = (user?.email.isNotEmpty ?? false) ? user!.email : 'Not set';
+    final area = (user?.area.isNotEmpty ?? false) ? user!.area : 'Not set';
+    final idLabel = user?.idLabel ?? 'Not provided';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -95,7 +99,15 @@ class AccountPreferencesScreen extends StatelessWidget {
                   ),
                 ),
                 const Divider(height: 1, color: Color(0xFFECECEC)),
-                _detailRow(Icons.location_on_outlined, 'Address', address, isLink: false),
+                _detailRow(Icons.person_outline, 'Owner', owner),
+                const Divider(height: 1, color: Color(0xFFECECEC)),
+                _detailRow(Icons.mail_outline, 'Email', email),
+                const Divider(height: 1, color: Color(0xFFECECEC)),
+                _detailRow(Icons.location_city_outlined, 'Area', area),
+                const Divider(height: 1, color: Color(0xFFECECEC)),
+                _detailRow(Icons.badge_outlined, 'ID Proof', idLabel),
+                const Divider(height: 1, color: Color(0xFFECECEC)),
+                _detailRow(Icons.location_on_outlined, 'Address', address),
               ],
             ),
           ),
@@ -104,7 +116,7 @@ class AccountPreferencesScreen extends StatelessWidget {
     );
   }
 
-  Widget _detailRow(IconData icon, String heading, String value, {required bool isLink}) {
+  Widget _detailRow(IconData icon, String heading, String value, {bool isLink = false}) {
     return Padding(
       padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
       child: Row(
@@ -124,26 +136,7 @@ class AccountPreferencesScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 6),
-          const Icon(Icons.chevron_right, color: Color(0xFF9E9E9E), size: 20),
         ],
-      ),
-    );
-  }
-
-  Widget _simpleRow(BuildContext context, IconData icon, String label) {
-    return InkWell(
-      onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$label — demo'))),
-      child: Padding(
-        padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-        child: Row(
-          children: [
-            Icon(icon, color: AppColors.primary, size: 22),
-            const SizedBox(width: Dimensions.paddingSizeDefault),
-            Expanded(child: Text(label, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault))),
-            const Icon(Icons.chevron_right, color: Color(0xFF9E9E9E), size: 20),
-          ],
-        ),
       ),
     );
   }

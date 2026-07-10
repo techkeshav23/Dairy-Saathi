@@ -39,6 +39,12 @@ class Product {
   final bool isFeatured;
   final String description;
 
+  /// Distributor-set resale price (per EA/pack). 0 = fall back to a computed suggestion.
+  final double resalePriceValue;
+
+  /// How many base units (EA/pack) make 1 KG. 0 = product is ordered only in EA (no KG option).
+  final double eaPerKg;
+
   const Product({
     required this.id,
     required this.name,
@@ -53,7 +59,12 @@ class Product {
     this.isPopular = false,
     this.isFeatured = false,
     this.description = '',
+    this.resalePriceValue = 0,
+    this.eaPerKg = 0,
   });
+
+  /// True when the retailer can also order this product by the kilogram.
+  bool get hasKg => eaPerKg > 0;
 
   /// The remote image URL for this product. Falls back to a placeholder if empty.
   String get image => imageUrl.isNotEmpty ? imageUrl : 'https://your-fallback-image-url.com/placeholder.png';
@@ -67,7 +78,9 @@ class Product {
   double get bestPrice => slabs.isNotEmpty ? slabs.last.pricePerUnit : mrp;
 
   /// Suggested resale price for the retailer (between wholesale Rate and MRP).
+  /// Uses the distributor-set value when provided, else a computed suggestion.
   double get resalePrice {
+    if (resalePriceValue > 0) return resalePriceValue;
     final suggested = mrp * 0.92;
     return suggested > basePrice ? suggested.roundToDouble() : mrp;
   }
@@ -109,6 +122,8 @@ class Product {
       isPopular: json['is_popular'] == true,
       isFeatured: json['is_featured'] == true,
       description: json['description'] ?? '',
+      resalePriceValue: double.tryParse('${json['resale_price']}') ?? 0,
+      eaPerKg: double.tryParse('${json['ea_per_kg']}') ?? 0,
     );
   }
 }

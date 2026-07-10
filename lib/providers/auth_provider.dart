@@ -41,8 +41,12 @@ class AuthProvider extends ChangeNotifier {
         name: prefs.getString(AppConstants.userName) ?? 'Retailer',
         shopName: prefs.getString(AppConstants.shopName) ?? 'My Shop',
         phone: prefs.getString(AppConstants.userPhone) ?? '',
+        email: prefs.getString('saathi_email') ?? '',
         address: prefs.getString('saathi_address') ?? '',
+        area: prefs.getString('saathi_area') ?? '',
         gstin: prefs.getString('saathi_gstin') ?? '',
+        idType: prefs.getString('saathi_id_type') ?? 'gst',
+        idNumber: prefs.getString('saathi_id_number') ?? '',
       );
       notifyListeners();
     }
@@ -178,6 +182,10 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setString(AppConstants.userName, (row['owner_name'] ?? row['name'] ?? 'Retailer').toString());
       await prefs.setString(AppConstants.shopName, (row['business_name'] ?? row['shop_name'] ?? 'My Shop').toString());
       await prefs.setString('saathi_gstin', (row['gst'] ?? '').toString());
+      await prefs.setString('saathi_area', (row['area'] ?? '').toString());
+      await prefs.setString('saathi_id_type', (row['id_type'] ?? 'gst').toString());
+      await prefs.setString('saathi_id_number', (row['id_number'] ?? '').toString());
+      if (row['email'] != null) await prefs.setString('saathi_email', row['email'].toString());
       if (row['phone'] != null) await prefs.setString(AppConstants.userPhone, row['phone'].toString());
       if (row['credit_limit'] != null) {
         await prefs.setDouble('saathi_credit_limit', (row['credit_limit'] as num).toDouble());
@@ -196,19 +204,28 @@ class AuthProvider extends ChangeNotifier {
     await prefs.setString(AppConstants.userName, updated.name);
     await prefs.setString(AppConstants.shopName, updated.shopName);
     await prefs.setString('saathi_address', updated.address);
+    await prefs.setString('saathi_area', updated.area);
     await prefs.setString('saathi_gstin', updated.gstin);
-    _user = updated;
+    // keep phone/email/id (identity) as-is on the existing user
+    final merged = updated.copyWith(
+      phone: _user?.phone ?? updated.phone,
+      email: _user?.email ?? updated.email,
+      idType: _user?.idType ?? updated.idType,
+      idNumber: _user?.idNumber ?? updated.idNumber,
+    );
+    _user = merged;
     notifyListeners();
 
     final uid = _sb.auth.currentUser?.id;
     if (uid != null) {
       await _sb.from('app_users').upsert({
         'id': uid,
-        'phone': prefs.getString(AppConstants.userPhone) ?? updated.phone,
+        'phone': merged.phone,
         'business_name': updated.shopName,
         'owner_name': updated.name,
         'shop_name': updated.shopName,
         'name': updated.name,
+        'area': updated.area,
         'gst': updated.gstin,
       });
     }

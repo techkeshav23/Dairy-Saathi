@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardHead } from "@/components/ui";
 import { Loader2 } from "lucide-react";
+import ImageInput from "@/components/ImageInput";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -14,6 +15,11 @@ export default function SettingsPage() {
     contact: "",
     email: "",
     address: "",
+    upi_id: "",
+    qr_image_url: "",
+    ship_from_address: "",
+    order_open_time: "",
+    order_cutoff_time: "",
   });
 
   const [prefs, setPrefs] = useState({
@@ -36,6 +42,11 @@ export default function SettingsPage() {
             contact: data.contact || "",
             email: data.email || "",
             address: data.address || "",
+            upi_id: data.upi_id || "",
+            qr_image_url: data.qr_image_url || "",
+            ship_from_address: data.ship_from_address || "",
+            order_open_time: data.order_open_time || "",
+            order_cutoff_time: data.order_cutoff_time || "",
           });
           if (data.preferences) {
             setPrefs({ ...prefs, ...data.preferences });
@@ -113,6 +124,72 @@ export default function SettingsPage() {
         </div>
       </Card>
       
+      <Card className="lg:col-span-2">
+        <CardHead title="Payment Collection (QR)" />
+        <div className="space-y-4 p-5 pt-1">
+          <p className="text-[12.5px] text-muted">
+            This UPI ID and QR are shown to retailers when they choose <b className="text-fg">Pay via QR</b> at checkout.
+            They upload a payment screenshot which you approve under Orders.
+          </p>
+          <label className="block">
+            <span className="mb-1.5 block text-[12px] font-medium text-muted">UPI ID</span>
+            <input value={profile.upi_id} onChange={(e) => setProfile({ ...profile, upi_id: e.target.value })} placeholder="yourname@okhdfcbank"
+              className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
+          </label>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+            <div className="flex-1">
+              <span className="mb-1.5 block text-[12px] font-medium text-muted">QR Code Image</span>
+              <ImageInput value={profile.qr_image_url} onChange={(url) => setProfile({ ...profile, qr_image_url: url })} placeholder="https://…/merchant-qr.png" />
+            </div>
+            {profile.qr_image_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.qr_image_url} alt="Merchant QR" className="h-28 w-28 shrink-0 rounded-lg border border-border object-contain bg-white p-1" />
+            )}
+          </div>
+          <div className="flex items-center gap-4 pt-1">
+            <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,.12)] disabled:opacity-70">
+              {saving && <Loader2 size={16} className="spin" />}
+              Save Changes
+            </button>
+            {msg && <span className={`text-sm font-medium ${msg.includes("Error") || msg.includes("Failed") ? "text-danger" : "text-success"}`}>{msg}</span>}
+          </div>
+        </div>
+      </Card>
+
+      <Card className="lg:col-span-2">
+        <CardHead title="Order Window & Shipping" />
+        <div className="space-y-4 p-5 pt-1">
+          <p className="text-[12.5px] text-muted">
+            Shown to retailers in their cart. After the cutoff time, retailers can&apos;t place orders
+            (&quot;Order taking time is over&quot;).
+          </p>
+          <label className="block">
+            <span className="mb-1.5 block text-[12px] font-medium text-muted">Ship From (Plant / Warehouse address)</span>
+            <input value={profile.ship_from_address} onChange={(e) => setProfile({ ...profile, ship_from_address: e.target.value })} placeholder="Plant address shown as 'Ship From'"
+              className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
+          </label>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="block">
+              <span className="mb-1.5 block text-[12px] font-medium text-muted">Order opens at</span>
+              <input type="time" value={profile.order_open_time} onChange={(e) => setProfile({ ...profile, order_open_time: e.target.value })}
+                className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-[12px] font-medium text-muted">Order closes at (cutoff)</span>
+              <input type="time" value={profile.order_cutoff_time} onChange={(e) => setProfile({ ...profile, order_cutoff_time: e.target.value })}
+                className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
+            </label>
+          </div>
+          <div className="flex items-center gap-4 pt-1">
+            <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(15,23,42,.12)] disabled:opacity-70">
+              {saving && <Loader2 size={16} className="spin" />}
+              Save Changes
+            </button>
+            {msg && <span className={`text-sm font-medium ${msg.includes("Error") || msg.includes("Failed") ? "text-danger" : "text-success"}`}>{msg}</span>}
+          </div>
+        </div>
+      </Card>
+
       <Card>
         <CardHead title="Preferences" />
         <div className="divide-y divide-border2 px-5 pb-3">
