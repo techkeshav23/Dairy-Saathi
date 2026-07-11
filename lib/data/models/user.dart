@@ -9,6 +9,8 @@ class UserModel {
   final String gstin;
   final String idType;   // 'gst' | 'pan' | 'aadhaar'
   final String idNumber;
+  final String code;     // short sequential retailer code (e.g. "1")
+  final String accountType; // 'retailer' | 'firm'
 
   const UserModel({
     required this.name,
@@ -20,7 +22,17 @@ class UserModel {
     this.gstin = '',
     this.idType = 'gst',
     this.idNumber = '',
+    this.code = '',
+    this.accountType = 'retailer',
   });
+
+  bool get isFirm => accountType == 'firm';
+
+  /// Display label for the buyer type — "Firm" or "Retailer".
+  String get typeLabel => isFirm ? 'Firm' : 'Retailer';
+
+  /// Label for the business name field/heading — "Firm" vs "Shop".
+  String get businessLabel => isFirm ? 'Firm' : 'Shop';
 
   UserModel copyWith({
     String? name,
@@ -32,6 +44,8 @@ class UserModel {
     String? gstin,
     String? idType,
     String? idNumber,
+    String? code,
+    String? accountType,
   }) =>
       UserModel(
         name: name ?? this.name,
@@ -43,6 +57,8 @@ class UserModel {
         gstin: gstin ?? this.gstin,
         idType: idType ?? this.idType,
         idNumber: idNumber ?? this.idNumber,
+        code: code ?? this.code,
+        accountType: accountType ?? this.accountType,
       );
 
   /// A friendly label for the ID proof, e.g. "PAN · ABCDE1234F".

@@ -184,7 +184,7 @@ export default function ProductsPage() {
                       <td className="tnum px-5 py-3 text-right">{p.stock}</td>
                       <td className="px-5 py-3"><Pill s={stockStatus(p.stock)} /></td>
                       <td className="px-5 py-3">
-                        <div className="flex justify-end gap-2.5 text-faint opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="flex justify-end gap-3 text-muted">
                           <button onClick={() => { setErr(""); setModal({ ...p, slabs: p.slabs?.length ? p.slabs : [{ min_qty: 1, price_per_unit: p.rate || 0 }] }); }} title="Edit"><Pencil size={15} className="hover:text-brand" /></button>
                           <button onClick={() => setDeleteConfirm(p.id)} title="Delete"><Trash2 size={15} className="hover:text-danger" /></button>
                         </div>

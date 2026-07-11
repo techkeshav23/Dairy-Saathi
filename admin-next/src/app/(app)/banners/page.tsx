@@ -5,7 +5,9 @@ import ImageInput from "@/components/ImageInput";
 
 type Banner = { id: string; title: string; sub: string; tag: string; color: string; image: string; active: boolean };
 
-const BLANK: Banner = { id: "", title: "", sub: "", tag: "OFFER", color: "#2b50d6", image: "", active: true };
+// Overlay colour is OFF by default (empty) — banners show the raw image unless the admin
+// explicitly turns on a colour tint.
+const BLANK: Banner = { id: "", title: "", sub: "", tag: "OFFER", color: "", image: "", active: true };
 const TAGS = ["OFFER", "STOCK AVAILABLE", "KHATA", "NEW", "COMBO", "SALE"];
 
 function BannerArt({ image, color, children }: { image: string; color: string; children: React.ReactNode }) {
@@ -175,7 +177,7 @@ export default function BannersPage() {
                   className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
               </label>
               <div className="block">
-                <ImageInput value={modal.image} onChange={(url) => setModal({ ...modal, image: url })} placeholder="https://…/banner.jpg" />
+                <ImageInput value={modal.image} onChange={(url) => setModal({ ...modal, image: url })} placeholder="https://…/banner.jpg" cropAspect={2.4} />
               </div>
               <label className="block">
                 <span className="mb-1 block text-[12px] font-medium text-muted">Tag</span>

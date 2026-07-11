@@ -13,7 +13,7 @@ const PW_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 export async function GET() {
   if (!supabaseAdmin) return NextResponse.json([]);
   const [uRes, lRes] = await Promise.all([
-    supabaseAdmin.from("app_users").select("id, code, business_name, owner_name, area, phone, email, gst, id_type, id_number, credit_limit, status, created_by, role, created_at, orders(id)").eq("role", "retailer"),
+    supabaseAdmin.from("app_users").select("id, code, business_name, owner_name, area, phone, email, gst, id_type, id_number, account_type, credit_limit, status, created_by, role, created_at, orders(id)").eq("role", "retailer"),
     supabaseAdmin.from("ledger_entries").select("user_id, type, amount"),
   ]);
   if (uRes.error) return NextResponse.json({ error: uRes.error.message }, { status: 500 });
@@ -35,6 +35,7 @@ export async function GET() {
     gst: u.gst || "",
     idType: u.id_type || (u.gst ? "gst" : ""),
     idNumber: u.id_number || u.gst || "",
+    accountType: u.account_type || "retailer",
     limit: Number(u.credit_limit) || 0,
     outstanding: Math.max(0, Math.round(outMap.get(u.id) ?? 0)),
     status: u.status || "active",
@@ -58,16 +59,14 @@ export async function POST(req: NextRequest) {
     email: b.email.trim(),
     password: b.password,
     email_confirm: true,
-    user_metadata: { business_name: b.name ?? "", owner_name: b.owner ?? "", created_by: "admin" },
+    user_metadata: { business_name: b.name ?? "", owner_name: b.owner ?? "", account_type: b.accountType || "retailer", created_by: "admin" },
   });
   if (aErr || !created?.user) return NextResponse.json({ error: aErr?.message || "Could not create login" }, { status: 400 });
 
   const uid = created.user.id;
-  const code = (b.code && String(b.code).trim()) || "R" + Date.now().toString().slice(-6);
 
-  // 2) create the retailer profile. Use upsert because the handle_new_user trigger (v27)
-  //    already inserted a minimal row when the auth user was created — upsert fills in the
-  //    full admin-entered details (credit limit, code, created_by='admin', etc.).
+  // 2) fill in the full profile. The handle_new_user trigger already created the row with a
+  //    sequential code (v32) — we upsert WITHOUT `code` so that generated code stands.
   const { error: pErr } = await supabaseAdmin.from("app_users").upsert({
     id: uid,
     email: b.email.trim(),
@@ -80,17 +79,18 @@ export async function POST(req: NextRequest) {
     gst: b.gst ?? "",
     id_type: b.idType ?? null,
     id_number: (b.idNumber && String(b.idNumber).trim()) || null,
+    account_type: b.accountType || "retailer",
     credit_limit: Number(b.limit) || 0,
     status: "active",
     created_by: "admin",
-    code,
   });
   if (pErr) {
     // rollback the auth user so we don't leave an orphan login
     await supabaseAdmin.auth.admin.deleteUser(uid);
     return NextResponse.json({ error: pErr.message }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, id: uid, code });
+  const { data: row } = await supabaseAdmin.from("app_users").select("code").eq("id", uid).single();
+  return NextResponse.json({ ok: true, id: uid, code: row?.code ?? "" });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -106,6 +106,7 @@ export async function PATCH(req: NextRequest) {
   if (b.gst !== undefined) patch.gst = b.gst;
   if (b.idType !== undefined) patch.id_type = b.idType;
   if (b.idNumber !== undefined) patch.id_number = (b.idNumber && String(b.idNumber).trim()) || null;
+  if (b.accountType !== undefined) patch.account_type = b.accountType;
   if (b.limit !== undefined) patch.credit_limit = Number(b.limit) || 0;
   if (b.status !== undefined) patch.status = b.status;
   if (b.role !== undefined) patch.role = b.role;

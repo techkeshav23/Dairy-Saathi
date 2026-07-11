@@ -125,13 +125,13 @@ class _CartScreenState extends State<CartScreen> {
                   name: _billFromName.isNotEmpty ? _billFromName : 'Your Distributor',
                   address: _billFromAddress,
                   tag: 'Distributor',
-                  gst: _billFromGst,
+                  idLine: _billFromGst.isNotEmpty ? 'GST  :  $_billFromGst' : '',
                 ),
                 const SizedBox(height: Dimensions.paddingSizeSmall),
                 _billToCard(context),
                 if (_shipFrom.isNotEmpty) ...[
                   const SizedBox(height: Dimensions.paddingSizeSmall),
-                  _partyCard(section: 'Ship From', name: _billFromName, address: _shipFrom, tag: 'Plant', gst: ''),
+                  _partyCard(section: 'Ship From', name: _billFromName, address: _shipFrom, tag: 'Plant', idLine: ''),
                 ],
                 const SizedBox(height: 100),
               ],
@@ -214,7 +214,7 @@ class _CartScreenState extends State<CartScreen> {
     required String name,
     required String address,
     required String tag,
-    required String gst,
+    required String idLine,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -248,9 +248,9 @@ class _CartScreenState extends State<CartScreen> {
                 ],
                 const SizedBox(height: 6),
                 Text(tag, style: robotoBold.copyWith(color: AppColors.link, fontSize: Dimensions.fontSizeSmall)),
-                if (gst.isNotEmpty) ...[
+                if (idLine.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text('GST  :  $gst', style: robotoMedium.copyWith(
+                  Text(idLine, style: robotoMedium.copyWith(
                       color: const Color(0xFF333A3D), fontSize: Dimensions.fontSizeSmall)),
                 ],
               ],
@@ -271,8 +271,8 @@ class _CartScreenState extends State<CartScreen> {
       section: 'Bill To',
       name: (user?.shopName.isNotEmpty ?? false) ? user!.shopName : 'Your Shop',
       address: addressParts.join(', '),
-      tag: 'Retailer',
-      gst: user?.idLabel ?? '',
+      tag: user?.typeLabel ?? 'Retailer',
+      idLine: user?.idLabel ?? '',
     );
   }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:my_order_pro/data/models/user.dart';
 import 'package:my_order_pro/helper/route_helper.dart';
 import 'package:my_order_pro/providers/auth_provider.dart';
 import 'package:my_order_pro/util/app_colors.dart';
-import 'package:my_order_pro/util/app_constants.dart';
 import 'package:my_order_pro/util/dimensions.dart';
 import 'package:my_order_pro/util/styles.dart';
 import '../../common/widgets/powered_by_codeblimp.dart';
@@ -14,7 +14,9 @@ class MoreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDistributor = context.watch<AuthProvider>().isDistributor;
+    final auth = context.watch<AuthProvider>();
+    final isDistributor = auth.isDistributor;
+    final user = auth.user;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -26,6 +28,11 @@ class MoreScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
                 children: [
+                // Profile header card — 1 tap to Edit Profile.
+                if (!isDistributor) ...[
+                  _profileCard(context, user),
+                  const SizedBox(height: Dimensions.paddingSizeLarge),
+                ],
                 Text('Statement & Wallet', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraLarge)),
                 const SizedBox(height: Dimensions.paddingSizeDefault),
                 Row(
@@ -62,6 +69,65 @@ class MoreScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const PoweredByCodeBlimp(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _profileCard(BuildContext context, UserModel? user) {
+    final shop = (user?.shopName.isNotEmpty ?? false) ? user!.shopName : 'My Shop';
+    final owner = (user?.name.isNotEmpty ?? false) ? user!.name : 'Retailer';
+    final code = user?.code ?? '';
+    return InkWell(
+      onTap: () => Navigator.pushNamed(context, RouteHelper.profile),
+      borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+      child: Container(
+        padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: AppColors.primaryLight,
+              child: Text(shop[0].toUpperCase(),
+                  style: robotoBold.copyWith(color: AppColors.primary, fontSize: 24)),
+            ),
+            const SizedBox(width: Dimensions.paddingSizeDefault),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(shop, maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge)),
+                  const SizedBox(height: 2),
+                  Text(owner, style: robotoRegular.copyWith(
+                      color: AppColors.textMedium, fontSize: Dimensions.fontSizeSmall)),
+                  if (code.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                      ),
+                      child: Text('Code: $code', style: robotoBold.copyWith(
+                          color: AppColors.primary, fontSize: Dimensions.fontSizeExtraSmall)),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                Text('Edit', style: robotoBold.copyWith(color: AppColors.link, fontSize: Dimensions.fontSizeSmall)),
+                const Icon(Icons.chevron_right, color: Color(0xFF9AA0A4), size: 20),
+              ],
+            ),
           ],
         ),
       ),
@@ -134,16 +200,6 @@ class MoreScreen extends StatelessWidget {
       ),
     );
   }
-
-  void _toast(BuildContext context, String m) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
-
-  void _about(BuildContext context) => showAboutDialog(
-        context: context,
-        applicationName: AppConstants.appName,
-        applicationVersion: 'v${AppConstants.appVersion}',
-        applicationLegalese: '${AppConstants.appTagline}\nWholesale ordering demo.',
-      );
 
   Future<void> _logout(BuildContext context) async {
     final confirm = await showDialog<bool>(

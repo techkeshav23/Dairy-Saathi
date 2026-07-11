@@ -8,11 +8,11 @@ import Link from "next/link";
 
 type R = {
   id: string; code: string; name: string; owner: string; area: string; phone: string;
-  email: string; gst: string; idType: string; idNumber: string;
+  email: string; gst: string; idType: string; idNumber: string; accountType: string;
   limit: number; outstanding: number; status: string; orders: number;
 };
 type RForm = R & { password: string; confirmPassword: string };
-const BLANK: RForm = { id: "", code: "", name: "", owner: "", area: "", phone: "", email: "", gst: "", idType: "gst", idNumber: "", limit: 50000, outstanding: 0, status: "active", orders: 0, password: "", confirmPassword: "" };
+const BLANK: RForm = { id: "", code: "", name: "", owner: "", area: "", phone: "", email: "", gst: "", idType: "gst", idNumber: "", accountType: "retailer", limit: 50000, outstanding: 0, status: "active", orders: 0, password: "", confirmPassword: "" };
 
 // Standard password policy: 8+ chars with an uppercase, a lowercase and a number.
 const PW_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -76,6 +76,7 @@ export default function RetailersPage() {
         body: JSON.stringify({
           id: modal.id, email: modal.email, password: modal.password || undefined,
           name: modal.name, owner: modal.owner, area: modal.area, phone: modal.phone,
+          accountType: modal.accountType,
           idType: modal.idType, idNumber: modal.idNumber.trim().toUpperCase(),
           gst: modal.idType === "gst" ? modal.idNumber.trim().toUpperCase() : "",
           limit: modal.limit, status: modal.status,
@@ -140,7 +141,12 @@ export default function RetailersPage() {
                   <tr key={r.id} className="group border-b border-border2 last:border-0 hover:bg-card2">
                     <td className="px-5 py-3 font-semibold">#{r.code}</td>
                     <td className="px-5 py-3">
-                      <Link href={`/retailers/${r.id}`} className="font-medium hover:text-brand hover:underline">{r.name}</Link>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/retailers/${r.id}`} className="font-medium hover:text-brand hover:underline">{r.name}</Link>
+                        <span className={`rounded px-1.5 py-[1px] text-[10px] font-semibold ${r.accountType === "firm" ? "bg-brand-soft text-brand" : "bg-card2 text-muted"}`}>
+                          {r.accountType === "firm" ? "Firm" : "Retailer"}
+                        </span>
+                      </div>
                       <div className="text-[11px] text-faint">{r.owner}</div>
                     </td>
                     <td className="px-5 py-3 text-muted">{r.phone || "—"}<div className="text-[11px] text-faint">{r.email}</div></td>
@@ -153,8 +159,8 @@ export default function RetailersPage() {
                       </span>
                     </td>
                     <td className="px-5 py-3">
-                      <div className="flex justify-end gap-2.5 text-faint opacity-0 transition-opacity group-hover:opacity-100">
-                        <button onClick={() => { setErr(""); setModal({ ...r, idType: r.idType || "gst", idNumber: r.idNumber || "", password: "", confirmPassword: "" }); }} title="Edit"><Pencil size={15} className="hover:text-brand" /></button>
+                      <div className="flex justify-end gap-3 text-muted">
+                        <button onClick={() => { setErr(""); setModal({ ...r, idType: r.idType || "gst", idNumber: r.idNumber || "", accountType: r.accountType || "retailer", password: "", confirmPassword: "" }); }} title="Edit"><Pencil size={15} className="hover:text-brand" /></button>
                         <button onClick={() => setActionConfirm({ type: 'block', r })} title={r.status === "blocked" ? "Unblock" : "Block"}>
                           {r.status === "blocked" ? <CheckCircle2 size={15} className="hover:text-success" /> : <Ban size={15} className="hover:text-warning" />}
                         </button>
@@ -181,8 +187,20 @@ export default function RetailersPage() {
               <button onClick={() => setModal(null)} className="grid h-8 w-8 place-items-center rounded-lg bg-card2 text-muted"><X size={16} /></button>
             </div>
             <div className="grid grid-cols-2 gap-4 p-5">
+              <div className="col-span-2">
+                <span className="mb-1 block text-[12px] font-medium text-muted">Account Type *</span>
+                <div className="flex gap-2">
+                  {(["retailer", "firm"] as const).map((t) => (
+                    <button key={t} type="button"
+                      onClick={() => setModal({ ...modal, accountType: t })}
+                      className={`flex-1 rounded-lg border py-2 text-[13px] font-medium capitalize transition ${modal.accountType === t ? "border-brand bg-brand text-white" : "border-border bg-card text-muted hover:text-fg"}`}>
+                      {t === "firm" ? "Firm / Business" : "Retailer"}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <label className="col-span-2 block">
-                <span className="mb-1 block text-[12px] font-medium text-muted">Business / Shop Name *</span>
+                <span className="mb-1 block text-[12px] font-medium text-muted">{modal.accountType === "firm" ? "Firm / Business Name *" : "Shop Name *"}</span>
                 <input value={modal.name} onChange={(e) => setModal({ ...modal, name: e.target.value })}
                   className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
               </label>

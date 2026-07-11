@@ -29,6 +29,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscure = true;
   bool _obscureConfirm = true;
   String _idType = 'gst'; // 'gst' | 'pan' | 'aadhaar'
+  String _accountType = 'retailer'; // 'retailer' | 'firm'
 
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
@@ -43,6 +44,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       idType: _idType,
       idNumber: _idNumber.text.trim().toUpperCase(),
       area: _area.text.trim(),
+      accountType: _accountType,
     );
     if (!mounted) return;
     if (err != null) {
@@ -105,21 +107,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 Center(child: const AppLogo(size: 64)),
                 const SizedBox(height: 20),
-                Text('Create retailer account', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge)),
+                Text('Create your account', style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge)),
                 const SizedBox(height: 6),
-                Text('Register your shop and start ordering at wholesale rates.',
+                Text('Register and start ordering at wholesale rates.',
                     style: robotoRegular.copyWith(color: AppColors.textMedium, fontSize: Dimensions.fontSizeDefault)),
-                const SizedBox(height: 26),
+                const SizedBox(height: 22),
 
-                _label('Shop Name *'),
+                _label('Account Type *'),
+                Row(children: [
+                  _typeChip('Retailer', 'retailer', Icons.storefront_outlined),
+                  const SizedBox(width: 8),
+                  _typeChip('Firm / Business', 'firm', Icons.apartment_outlined),
+                ]),
+                const SizedBox(height: 16),
+
+                _label(_accountType == 'firm' ? 'Firm / Business Name *' : 'Shop Name *'),
                 TextFormField(controller: _shop, textCapitalization: TextCapitalization.words,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your shop name' : null,
-                    decoration: _decoration('Shop / business name', Icons.storefront_outlined)),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? (_accountType == 'firm' ? 'Enter your firm name' : 'Enter your shop name')
+                        : null,
+                    decoration: _decoration(
+                        _accountType == 'firm' ? 'Firm / business name' : 'Shop / business name',
+                        _accountType == 'firm' ? Icons.apartment_outlined : Icons.storefront_outlined)),
                 const SizedBox(height: 14),
 
-                _label('Owner Name *'),
+                _label(_accountType == 'firm' ? 'Proprietor / Director *' : 'Owner Name *'),
                 TextFormField(controller: _owner, textCapitalization: TextCapitalization.words,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter the owner name' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter the name' : null,
                     decoration: _decoration('Your name', Icons.person_outline)),
                 const SizedBox(height: 14),
 
@@ -244,6 +258,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
       default:
         return [FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')), LengthLimitingTextInputFormatter(15), upper];
     }
+  }
+
+  Widget _typeChip(String label, String value, IconData icon) {
+    final selected = _accountType == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _accountType = value),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 13),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primary : AppColors.card,
+            borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+            border: Border.all(color: selected ? AppColors.primary : AppColors.border),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18, color: selected ? Colors.white : AppColors.textMedium),
+              const SizedBox(width: 6),
+              Text(label, style: robotoBold.copyWith(
+                  color: selected ? Colors.white : AppColors.textMedium, fontSize: Dimensions.fontSizeSmall)),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _idChip(String label, String value) {

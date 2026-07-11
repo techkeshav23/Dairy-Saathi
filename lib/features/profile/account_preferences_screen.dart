@@ -78,7 +78,7 @@ class AccountPreferencesScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Retailer', style: robotoMedium.copyWith(
+                                Text(user?.typeLabel ?? 'Retailer', style: robotoMedium.copyWith(
                                     color: AppColors.link, fontSize: Dimensions.fontSizeSmall)),
                                 const SizedBox(height: 2),
                                 Text((user?.shopName.isNotEmpty ?? false) ? user!.shopName : 'Shop Name not set',

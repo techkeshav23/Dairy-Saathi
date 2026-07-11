@@ -105,7 +105,7 @@ class _DistributorCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Retailer', style: robotoMedium.copyWith(
+                      Text(user?.typeLabel ?? 'Retailer', style: robotoMedium.copyWith(
                           color: AppColors.success, fontSize: Dimensions.fontSizeSmall)),
                       const SizedBox(height: 1),
                       Text(user?.shopName ?? 'My Kirana Store',
@@ -114,8 +114,9 @@ class _DistributorCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text('+91-${user?.phone ?? "9000000000"}',
                           style: robotoRegular.copyWith(color: AppColors.textLight, fontSize: Dimensions.fontSizeSmall)),
-                      Text('orders@dairydemo.in',
-                          style: robotoRegular.copyWith(color: AppColors.textLight, fontSize: Dimensions.fontSizeSmall)),
+                      if ((user?.code ?? '').isNotEmpty)
+                        Text('${user!.typeLabel} Code: ${user.code}',
+                            style: robotoBold.copyWith(color: AppColors.primary, fontSize: Dimensions.fontSizeSmall)),
                     ],
                   ),
                 ),

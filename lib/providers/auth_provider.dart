@@ -47,6 +47,8 @@ class AuthProvider extends ChangeNotifier {
         gstin: prefs.getString('saathi_gstin') ?? '',
         idType: prefs.getString('saathi_id_type') ?? 'gst',
         idNumber: prefs.getString('saathi_id_number') ?? '',
+        code: prefs.getString('saathi_code') ?? '',
+        accountType: prefs.getString('saathi_account_type') ?? 'retailer',
       );
       notifyListeners();
     }
@@ -93,6 +95,7 @@ class AuthProvider extends ChangeNotifier {
     String idType = 'gst', // 'gst' | 'pan' | 'aadhaar'
     String idNumber = '',
     String area = '',
+    String accountType = 'retailer', // 'retailer' | 'firm'
   }) async {
     _loading = true;
     notifyListeners();
@@ -113,6 +116,7 @@ class AuthProvider extends ChangeNotifier {
           'id_number': idNumber,
           'gst': idType == 'gst' ? idNumber : '',
           'area': area,
+          'account_type': accountType,
           'created_by': 'self',
         },
       );
@@ -185,6 +189,8 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setString('saathi_area', (row['area'] ?? '').toString());
       await prefs.setString('saathi_id_type', (row['id_type'] ?? 'gst').toString());
       await prefs.setString('saathi_id_number', (row['id_number'] ?? '').toString());
+      await prefs.setString('saathi_code', (row['code'] ?? '').toString());
+      await prefs.setString('saathi_account_type', (row['account_type'] ?? 'retailer').toString());
       if (row['email'] != null) await prefs.setString('saathi_email', row['email'].toString());
       if (row['phone'] != null) await prefs.setString(AppConstants.userPhone, row['phone'].toString());
       if (row['credit_limit'] != null) {
