@@ -1,6 +1,11 @@
 # MCP config — holds the Supabase access token, never commit
 .mcp.json
 
+# Reference screenshots / scratch images (not part of the app)
+/IMAGES/
+/crop_*.png
+/*.apk
+
 # Miscellaneous
 *.class
 *.log

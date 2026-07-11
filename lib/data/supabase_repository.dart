@@ -203,25 +203,4 @@ class SupabaseRepository implements Repository {
     }).toList();
   }
 
-  @override
-  Future<String> requestOtp(String phone) async {
-    try {
-      await _client.auth.signInWithOtp(phone: phone);
-      return '';
-    } on AuthException catch (e) {
-      return e.message;
-    } catch (e) {
-      return e.toString();
-    }
-  }
-
-  @override
-  Future<bool> verifyOtp(String phone, String otp) async {
-    final res = await _client.auth.verifyOTP(
-      phone: phone,
-      token: otp,
-      type: OtpType.sms,
-    );
-    return res.session != null;
-  }
 }

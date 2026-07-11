@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:my_order_pro/common/widgets/app_logo.dart';
 import 'package:my_order_pro/data/supabase_config.dart';
 import 'package:my_order_pro/helper/route_helper.dart';
 import 'package:my_order_pro/providers/auth_provider.dart';
 import 'package:my_order_pro/util/app_constants.dart';
-import 'package:my_order_pro/util/styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_order_pro/util/app_colors.dart';
 import 'package:my_order_pro/common/widgets/powered_by_codeblimp.dart';
-import 'package:my_order_pro/features/parties/parties_screen.dart';
 import 'package:my_order_pro/providers/auth_provider.dart';
 
 class SettingsScreen extends StatelessWidget {

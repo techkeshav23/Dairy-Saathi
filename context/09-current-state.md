@@ -103,7 +103,7 @@ Run `schema.sql` → **`schema_v23`** **in order**. Migrations **v11–v23** (ad
 | `schema_v22_retailer_notes.sql` | retailer notes / interaction log (Retailer 360) |
 | `schema_v23_qr_payments.sql` | QR payment mode: payment columns on orders, `payment_screenshots` bucket, updated `place_order` |
 | `schema_v24_banner_active_and_purchases.sql` | `banners.active` (admin toggle now persists; app shows only active) + `purchases`/`purchase_items` tables + `apply_purchase()` RPC (Purchase/Stock-In now real) |
-| `wipe_demo_data.sql` | utility — clears demo/seed data (not a migration; run only on purpose) |
+| `scripts/wipe_demo_data.sql`, `scripts/maintenance_clean_catalog_data.sql` | one-off utilities (moved to `supabase/scripts/`) — clear demo/catalog data; NOT migrations, run only on purpose |
 
 - **P0 Priority backlog is DONE:**
   - **Orders:** Fully manageable (Confirmed/Packed/Dispatched/Delivered) from the Admin panel via `OrderStatusSelect`.

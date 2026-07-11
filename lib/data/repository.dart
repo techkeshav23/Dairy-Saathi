@@ -18,10 +18,6 @@ abstract class Repository {
 
   /// The signed-in retailer's own order history (most recent first).
   Future<List<OrderModel>> getOrders();
-
-  /// Simulated send-OTP. Returns the OTP so the demo can auto-fill it.
-  Future<String> requestOtp(String phone);
-  Future<bool> verifyOtp(String phone, String otp);
 }
 
 class MockRepository implements Repository {
@@ -87,17 +83,5 @@ class MockRepository implements Repository {
     await _delay();
     // Mock mode keeps order history in-session only (see OrderProvider).
     return const [];
-  }
-
-  @override
-  Future<String> requestOtp(String phone) async {
-    await _delay(800);
-    return '1234'; // demo OTP
-  }
-
-  @override
-  Future<bool> verifyOtp(String phone, String otp) async {
-    await _delay(700);
-    return otp == '1234';
   }
 }
