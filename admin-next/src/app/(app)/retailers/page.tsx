@@ -122,10 +122,10 @@ export default function RetailersPage() {
           <Search size={15} className="text-faint shrink-0" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="w-full sm:w-44 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
         </div>
-        <div className="flex items-center rounded-lg border border-border bg-card2 p-0.5 text-[12.5px] font-medium">
+        <div className="flex w-full sm:w-auto items-center rounded-lg border border-border bg-card2 p-0.5 text-[12.5px] font-medium">
           {([["all", `All (${list.length})`], ["retailer", `Retailers (${list.length - firmCount})`], ["firm", `Firms (${firmCount})`]] as const).map(([v, label]) => (
             <button key={v} onClick={() => setTypeFilter(v)}
-              className={`rounded-md px-3 py-1.5 transition ${typeFilter === v ? "bg-brand text-white shadow-sm" : "text-muted hover:text-fg"}`}>
+              className={`flex-1 sm:flex-none whitespace-nowrap rounded-md px-2.5 sm:px-3 py-1.5 transition ${typeFilter === v ? "bg-brand text-white shadow-sm" : "text-muted hover:text-fg"}`}>
               {label}
             </button>
           ))}

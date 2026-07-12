@@ -306,13 +306,13 @@ export default function ProductsPage() {
                 </div>
                 {(modal.slabs || [{ min_qty: 1, price_per_unit: modal.rate || 0 }]).map((slab, idx, arr) => (
                   <div key={idx} className="flex items-center gap-3">
-                    <div className="relative w-1/2">
+                    <div className="relative flex-1 min-w-0">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted">Qty ≥</span>
                       <input type="number" value={slab.min_qty} onChange={(e) => {
                         const s = [...arr]; s[idx].min_qty = Number(e.target.value) || 0; setModal({ ...modal, slabs: s });
                       }} className="w-full rounded-lg border border-border bg-card py-2 pl-12 pr-3 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
                     </div>
-                    <div className="relative w-1/2">
+                    <div className="relative flex-1 min-w-0">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted">₹</span>
                       <input type="number" value={slab.price_per_unit} onChange={(e) => {
                         const s = [...arr]; s[idx].price_per_unit = Number(e.target.value) || 0; setModal({ ...modal, slabs: s });
