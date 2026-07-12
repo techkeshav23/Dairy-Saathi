@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:my_order_pro/common/widgets/balance_strip.dart';
 import 'package:my_order_pro/features/home/widgets/banner_carousel.dart';
 import 'package:my_order_pro/helper/price_converter.dart';
@@ -21,6 +22,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String _openTime = '';
+  String _cutoffTime = '';
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +33,75 @@ class _HomeScreenState extends State<HomeScreen> {
       if (catalog.categories.isEmpty) catalog.loadHome();
       context.read<OrderProvider>().loadLedger();
     });
+    _loadWindow();
+  }
+
+  Future<void> _loadWindow() async {
+    try {
+      final row = await Supabase.instance.client
+          .from('store_settings')
+          .select('order_open_time, order_cutoff_time')
+          .eq('id', 1)
+          .maybeSingle();
+      if (!mounted || row == null) return;
+      setState(() {
+        _openTime = (row['order_open_time'] ?? '').toString();
+        _cutoffTime = (row['order_cutoff_time'] ?? '').toString();
+      });
+    } catch (_) {/* non-fatal */}
+  }
+
+  int? _minutes(String hhmm) {
+    final p = hhmm.split(':');
+    if (p.length < 2) return null;
+    final h = int.tryParse(p[0]);
+    final m = int.tryParse(p[1]);
+    return (h == null || m == null) ? null : h * 60 + m;
+  }
+
+  bool get _orderClosed {
+    final now = DateTime.now();
+    final nowMin = now.hour * 60 + now.minute;
+    final open = _minutes(_openTime);
+    final cut = _minutes(_cutoffTime);
+    if (open != null && nowMin < open) return true;
+    if (cut != null && nowMin > cut) return true;
+    return false;
+  }
+
+  Widget _closedBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDECEA),
+        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+        border: Border.all(color: const Color(0xFFF3C9C9)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lock_clock, color: Color(0xFFD23B3B), size: 24),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Ordering is closed right now',
+                    style: robotoBold.copyWith(color: const Color(0xFFD23B3B), fontSize: Dimensions.fontSizeDefault)),
+                if (_openTime.isNotEmpty || _cutoffTime.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    _openTime.isNotEmpty && _cutoffTime.isNotEmpty
+                        ? 'Order window: $_openTime – $_cutoffTime'
+                        : (_cutoffTime.isNotEmpty ? 'Closed at $_cutoffTime' : 'Opens at $_openTime'),
+                    style: robotoRegular.copyWith(color: const Color(0xFF8A5050), fontSize: Dimensions.fontSizeSmall),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -52,6 +125,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 Dimensions.paddingSizeLarge,
               ),
               children: [
+                if (_orderClosed) ...[
+                  _closedBanner(),
+                  const SizedBox(height: Dimensions.paddingSizeDefault),
+                ],
                 const _DistributorCard(),
                 const SizedBox(height: Dimensions.paddingSizeDefault),
                 if (isCatalogLoading) ...[

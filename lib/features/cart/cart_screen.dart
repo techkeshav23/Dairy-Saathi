@@ -65,6 +65,15 @@ class _CartScreenState extends State<CartScreen> {
     return h * 60 + m;
   }
 
+  /// A friendly "ordering closed" message using the configured window.
+  String get _closedMessage {
+    if (_openTime.isNotEmpty && _cutoffTime.isNotEmpty) {
+      return 'Ordering is closed. You can order between $_openTime and $_cutoffTime.';
+    }
+    if (_cutoffTime.isNotEmpty) return 'Ordering is closed for today (closed at $_cutoffTime).';
+    return 'Ordering is currently closed.';
+  }
+
   /// True when the current time is outside the distributor's ordering window.
   bool get _orderClosed {
     final now = DateTime.now();
@@ -193,7 +202,11 @@ class _CartScreenState extends State<CartScreen> {
                               text: closed ? 'Order Closed' : 'Proceed',
                               icon: closed ? Icons.lock_outline : Icons.arrow_forward_rounded,
                               onPressed: closed
-                                  ? () {}
+                                  ? () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                        content: Text(_closedMessage),
+                                        backgroundColor: const Color(0xFFD23B3B),
+                                        behavior: SnackBarBehavior.floating,
+                                      ))
                                   : () => Navigator.pushNamed(context, RouteHelper.checkout),
                             ),
                           ),

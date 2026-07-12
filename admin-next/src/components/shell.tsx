@@ -20,7 +20,7 @@ const SECTIONS = [
       { href: "/orders", label: "Orders", icon: ShoppingCart },
       { href: "/products", label: "Products", icon: Package },
       { href: "/categories", label: "Categories", icon: Tags },
-      { href: "/purchase", label: "Purchase / Stock-In", icon: Truck },
+      { href: "/purchase", label: "Bill Import", icon: Truck },
       { href: "/retailers", label: "Retailers", icon: Store },
     ],
   },

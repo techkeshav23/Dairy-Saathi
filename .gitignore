@@ -6,6 +6,9 @@
 /crop_*.png
 /*.apk
 
+# Test bills used for Bill Import testing (not part of the app)
+/BILL/
+
 # Miscellaneous
 *.class
 *.log

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHead } from "@/components/ui";
 import { Loader2 } from "lucide-react";
 import ImageInput from "@/components/ImageInput";
+import AiBillReaderCard from "@/components/AiBillReaderCard";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -155,6 +156,8 @@ export default function SettingsPage() {
           </div>
         </div>
       </Card>
+
+      <AiBillReaderCard />
 
       <Card className="lg:col-span-2">
         <CardHead title="Order Window & Shipping" />

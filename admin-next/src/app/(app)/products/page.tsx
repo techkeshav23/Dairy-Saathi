@@ -8,14 +8,16 @@ import ProductImport from "@/components/ProductImport";
 import { stockStatus } from "@/lib/data";
 import { inr } from "@/lib/format";
 
-type P = { id: string; name: string; cat: string; mrp: number; rate: number; resale: number; eaPerKg: number; moq: number; stock: number; pack: string; image: string; slabs?: { min_qty: number; price_per_unit: number }[] };
+type P = { id: string; name: string; displayName: string; cat: string; mrp: number; rate: number; resale: number; eaPerKg: number; moq: number; stock: number; pack: string; image: string; slabs?: { min_qty: number; price_per_unit: number }[] };
 
 const TINTS = [["#eef2fe", "#2b50d6"], ["#faf0dc", "#c07708"], ["#e6f6ee", "#0f9d63"], ["#f1f3f7", "#586172"]];
-const BLANK: P = { id: "", name: "", cat: "", mrp: 0, rate: 0, resale: 0, eaPerKg: 0, moq: 1, stock: 0, pack: "1 EA", image: "", slabs: [{ min_qty: 1, price_per_unit: 0 }] };
+const BLANK: P = { id: "", name: "", displayName: "", cat: "", mrp: 0, rate: 0, resale: 0, eaPerKg: 0, moq: 1, stock: 0, pack: "1 EA", image: "", slabs: [{ min_qty: 1, price_per_unit: 0 }] };
 
 export default function ProductsPage() {
   const [q, setQ] = useState("");
   const [catFilter, setCatFilter] = useState("All");
+  const [noImgOnly, setNoImgOnly] = useState(false);
+  const [noNameOnly, setNoNameOnly] = useState(false);
   const [list, setList] = useState<P[]>([]);
   const [cats, setCats] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +27,24 @@ export default function ProductsPage() {
   const [broken, setBroken] = useState<Record<string, boolean>>({});
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkCat, setBulkCat] = useState("");
+  const [assigning, setAssigning] = useState(false);
+
+  const toggleSel = (id: string) => setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+
+  const assignCategory = async () => {
+    if (selected.size === 0 || assigning) return;
+    setAssigning(true);
+    try {
+      const res = await fetch("/api/products/bulk-category", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [...selected], category: bulkCat || "Uncategorized" }),
+      });
+      if (res.ok) { setSelected(new Set()); setBulkCat(""); await load(); }
+    } catch { /* ignore */ }
+    setAssigning(false);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -54,8 +74,10 @@ export default function ProductsPage() {
 
   const rows = useMemo(() => list.filter((p) =>
     (catFilter === "All" || p.cat === catFilter) &&
-    (p.name + p.cat).toLowerCase().includes(q.toLowerCase())
-  ), [q, list, catFilter]);
+    (!noImgOnly || !p.image) &&
+    (!noNameOnly || !p.displayName) &&
+    (p.name + p.displayName + p.cat).toLowerCase().includes(q.toLowerCase())
+  ), [q, list, catFilter, noImgOnly, noNameOnly]);
 
   const openNew = () => { setErr(""); setModal({ ...BLANK, cat: cats[0] || "", slabs: [{ min_qty: 1, price_per_unit: 0 }] }); };
 
@@ -136,14 +158,40 @@ export default function ProductsPage() {
         </div>
         <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} className="w-full sm:w-auto rounded-lg border border-border bg-card px-3 py-2 text-[13px] font-medium text-fg outline-none focus:border-brand">
           <option value="All">All categories</option>
+          <option value="Uncategorized">Uncategorized</option>
           {cats.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
+        <button onClick={() => setNoImgOnly((v) => !v)}
+          className={`flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-[13px] font-medium transition ${noImgOnly ? "border-brand bg-brand text-white" : "border-border bg-card text-muted hover:text-fg"}`}>
+          <ImageIcon size={14} />No image
+        </button>
+        <button onClick={() => setNoNameOnly((v) => !v)}
+          className={`flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-[13px] font-medium transition ${noNameOnly ? "border-warning bg-warning text-white" : "border-border bg-card text-muted hover:text-fg"}`}>
+          No display name
+        </button>
         <span className="hidden sm:inline text-[12px] text-faint">{rows.length} items</span>
         <div className="w-full sm:w-auto sm:ml-auto flex flex-col sm:flex-row gap-2">
           <ProductImport onDone={load} />
           <button onClick={openNew} className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95"><Plus size={16} />Add Product</button>
         </div>
       </div>
+
+      {selected.size > 0 && (
+        <div className="flex flex-col gap-2 rounded-lg border border-brand bg-brand-soft px-4 py-2.5 sm:flex-row sm:items-center">
+          <span className="text-[13px] font-semibold text-brand">{selected.size} selected</span>
+          <div className="sm:ml-auto flex items-center gap-2">
+            <select value={bulkCat} onChange={(e) => setBulkCat(e.target.value)} className="rounded-lg border border-border bg-card px-3 py-1.5 text-[13px] outline-none focus:border-brand">
+              <option value="">Assign category…</option>
+              <option value="Uncategorized">Uncategorized</option>
+              {cats.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <button onClick={assignCategory} disabled={!bulkCat || assigning} className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[13px] font-semibold text-white hover:opacity-95 disabled:opacity-50">
+              {assigning && <Loader2 size={14} className="spin" />}Assign
+            </button>
+            <button onClick={() => setSelected(new Set())} className="rounded-lg border border-border bg-card px-3 py-1.5 text-[13px] font-medium hover:bg-card2">Clear</button>
+          </div>
+        </div>
+      )}
 
       <Card className="overflow-hidden">
         {loading ? (
@@ -153,6 +201,7 @@ export default function ProductsPage() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-faint">
+                  <th className="px-3 py-3"><input type="checkbox" checked={rows.length > 0 && rows.every((p) => selected.has(p.id))} onChange={(e) => setSelected(e.target.checked ? new Set(rows.map((p) => p.id)) : new Set())} /></th>
                   <th className="px-5 py-3 font-semibold">Product</th><th className="px-5 py-3 font-semibold">Category</th>
                   <th className="px-5 py-3 text-right font-semibold">MRP</th><th className="px-5 py-3 text-right font-semibold">Rate</th>
                   <th className="px-5 py-3 text-right font-semibold">Resale</th><th className="px-5 py-3 text-right font-semibold">MOQ</th>
@@ -164,7 +213,8 @@ export default function ProductsPage() {
                 {rows.map((p, i) => {
                   const t = TINTS[i % TINTS.length];
                   return (
-                    <tr key={p.id} className="group border-b border-border2 last:border-0 hover:bg-card2">
+                    <tr key={p.id} className={`group border-b border-border2 last:border-0 hover:bg-card2 ${selected.has(p.id) ? "bg-brand-soft/40" : ""}`}>
+                      <td className="px-3 py-3"><input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} /></td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           {p.image && !broken[p.id] ? (
@@ -173,7 +223,10 @@ export default function ProductsPage() {
                           ) : (
                             <span className="grid h-9 w-9 place-items-center rounded-lg text-[13px] font-bold" style={{ background: t[0], color: t[1] }}>{p.name[0]}</span>
                           )}
-                          <div><div className="font-semibold">{p.name}</div><div className="text-[11px] text-faint">{p.pack}</div></div>
+                          <div>
+                            <div className="font-semibold">{p.displayName || <span className="text-warning">⚠ No display name (hidden in app)</span>}</div>
+                            <div className="text-[11px] text-faint">{p.name}{p.pack ? ` · ${p.pack}` : ""}</div>
+                          </div>
                         </div>
                       </td>
                       <td className="px-5 py-3 text-muted">{p.cat}</td>
@@ -192,7 +245,7 @@ export default function ProductsPage() {
                     </tr>
                   );
                 })}
-                {rows.length === 0 && <tr><td colSpan={9} className="px-5 py-12 text-center text-muted">No products found.</td></tr>}
+                {rows.length === 0 && <tr><td colSpan={10} className="px-5 py-12 text-center text-muted">No products found.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -208,9 +261,15 @@ export default function ProductsPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 max-h-[70vh] overflow-y-auto">
               <label className="sm:col-span-2 block">
-                <span className="mb-1 block text-[12px] font-medium text-muted">Product Name</span>
-                <input value={modal.name} onChange={(e) => setModal({ ...modal, name: e.target.value })} placeholder="India Gate Basmati Rice 5kg"
+                <span className="mb-1 block text-[12px] font-medium text-muted">Internal Name <span className="text-faint">(from bill — not shown to customers)</span></span>
+                <input value={modal.name} onChange={(e) => setModal({ ...modal, name: e.target.value })} placeholder="e.g. AASH ATTA 10KG BOPP"
                   className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
+              </label>
+              <label className="sm:col-span-2 block">
+                <span className="mb-1 block text-[12px] font-medium text-muted">Display Name <span className="text-brand">(shown in the app)</span></span>
+                <input value={modal.displayName} onChange={(e) => setModal({ ...modal, displayName: e.target.value })} placeholder="e.g. Aashirvaad Atta 10kg"
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
+                <span className="mt-1 block text-[11px] text-faint">Blank = product stays hidden in the app until you set this.</span>
               </label>
               <label className="col-span-2 block">
                 <span className="mb-1 block text-[12px] font-medium text-muted">Category</span>

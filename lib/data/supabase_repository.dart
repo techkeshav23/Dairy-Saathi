@@ -35,7 +35,8 @@ class SupabaseRepository implements Repository {
 
     return Product(
       id: row['id'].toString(),
-      name: row['name'] ?? '',
+      // App shows the customer-facing display name only — never the internal/bill name.
+      name: (row['display_name'] ?? row['name'] ?? '').toString(),
       brand: row['brand'] ?? '',
       categoryId: row['category_id'].toString(),
       imageUrl: row['image_url'] ?? '',
@@ -66,7 +67,8 @@ class SupabaseRepository implements Repository {
 
   @override
   Future<List<Product>> getProducts({String? categoryId, String? query}) async {
-    var qb = _client.from('products').select('*, price_slabs(*)');
+    // Only products that have a customer-facing display name are shown in the app.
+    var qb = _client.from('products').select('*, price_slabs(*)').not('display_name', 'is', null);
     
     if (categoryId != null && categoryId.isNotEmpty) {
       qb = qb.eq('category_id', categoryId);
@@ -86,6 +88,7 @@ class SupabaseRepository implements Repository {
     final res = await _client
         .from('products')
         .select('*, price_slabs(*)')
+        .not('display_name', 'is', null)
         .eq('is_featured', true)
         .limit(50);
     return res.map((row) => _parseProduct(row)).toList();
@@ -96,6 +99,7 @@ class SupabaseRepository implements Repository {
     final res = await _client
         .from('products')
         .select('*, price_slabs(*)')
+        .not('display_name', 'is', null)
         .eq('is_popular', true)
         .limit(50);
     return res.map((row) => _parseProduct(row)).toList();
@@ -166,7 +170,7 @@ class SupabaseRepository implements Repository {
     final res = await _client
         .from('orders')
         .select('id, status, total, created_at, '
-            'order_items(product_id, qty, unit_price, products(name, unit, image_url))')
+            'order_items(product_id, qty, unit_price, products(display_name, name, unit, image_url))')
         .eq('user_id', userId)
         .order('created_at', ascending: false)
         .limit(100);
@@ -177,7 +181,7 @@ class SupabaseRepository implements Repository {
         final p = e['products'] as Map<String, dynamic>?;
         return OrderLine(
           productId: '${e['product_id'] ?? ''}',
-          name: p?['name'] ?? 'Item',
+          name: (p?['display_name'] ?? p?['name'] ?? 'Item').toString(),
           unit: p?['unit'] ?? '',
           imageUrl: p?['image_url'] ?? '',
           quantity: int.tryParse('${e['qty']}') ?? 1,

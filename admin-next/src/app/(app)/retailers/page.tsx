@@ -29,6 +29,7 @@ const ID_HINT: Record<string, string> = { gst: "15-character GSTIN", pan: "10-ch
 
 export default function RetailersPage() {
   const [q, setQ] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | "retailer" | "firm">("all");
   const [list, setList] = useState<R[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<RForm | null>(null);
@@ -49,7 +50,12 @@ export default function RetailersPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const rows = useMemo(() => list.filter((r) => (r.name + r.owner + r.area + r.phone + r.email + r.code).toLowerCase().includes(q.toLowerCase())), [q, list]);
+  const rows = useMemo(() => list.filter((r) =>
+    (typeFilter === "all" || (r.accountType || "retailer") === typeFilter) &&
+    (r.name + r.owner + r.area + r.phone + r.email + r.code).toLowerCase().includes(q.toLowerCase())
+  ), [q, list, typeFilter]);
+
+  const firmCount = useMemo(() => list.filter((r) => r.accountType === "firm").length, [list]);
 
   const isEdit = !!modal?.id;
 
@@ -114,9 +120,16 @@ export default function RetailersPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
         <div className="flex w-full sm:w-auto items-center gap-2 rounded-lg border border-border bg-card px-3">
           <Search size={15} className="text-faint shrink-0" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search retailers…" className="w-full sm:w-52 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="w-full sm:w-44 bg-transparent py-2 text-[13px] outline-none placeholder:text-faint" />
         </div>
-        <span className="hidden sm:inline text-[12px] text-faint">{rows.length} retailers</span>
+        <div className="flex items-center rounded-lg border border-border bg-card2 p-0.5 text-[12.5px] font-medium">
+          {([["all", `All (${list.length})`], ["retailer", `Retailers (${list.length - firmCount})`], ["firm", `Firms (${firmCount})`]] as const).map(([v, label]) => (
+            <button key={v} onClick={() => setTypeFilter(v)}
+              className={`rounded-md px-3 py-1.5 transition ${typeFilter === v ? "bg-brand text-white shadow-sm" : "text-muted hover:text-fg"}`}>
+              {label}
+            </button>
+          ))}
+        </div>
         <button onClick={() => { setErr(""); setModal({ ...BLANK }); }} className="w-full sm:w-auto sm:ml-auto flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(43,80,214,.20)] transition hover:opacity-95">
           <Plus size={16} />Add Retailer
         </button>
