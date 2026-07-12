@@ -17,7 +17,7 @@ export async function GET() {
   if (!supabaseAdmin) return NextResponse.json([]);
   const { data, error } = await supabaseAdmin
     .from("products")
-    .select("id, name, display_name, brand, unit, mrp, moq, stock, image_url, resale_price, ea_per_kg, categories(name), price_slabs(min_qty, price_per_unit)")
+    .select("id, name, display_name, brand, unit, mrp, moq, stock, image_url, resale_price, ea_per_kg, ea_per_crate, crate_price, categories(name), price_slabs(min_qty, price_per_unit)")
     .order("name");
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   const rows = (data ?? []).map((p: any) => {
@@ -28,7 +28,7 @@ export async function GET() {
     })).sort((a: any, b: any) => a.min_qty - b.min_qty);
     const prices = slabs.map((s: any) => s.price_per_unit).filter((n: number) => n > 0);
     const rate = prices.length ? Math.min(...prices) : Number(p.mrp);
-    return { id: p.id, name: p.name || "", displayName: p.display_name || "", cat: cat || "Uncategorized", mrp: Number(p.mrp) || 0, rate: rate || 0, resale: Number(p.resale_price) || Number(p.mrp) || 0, eaPerKg: Number(p.ea_per_kg) || 0, moq: p.moq || 1, stock: p.stock || 0, pack: p.unit || "1 unit", image: p.image_url || "", slabs };
+    return { id: p.id, name: p.name || "", displayName: p.display_name || "", cat: cat || "Uncategorized", mrp: Number(p.mrp) || 0, rate: rate || 0, resale: Number(p.resale_price) || Number(p.mrp) || 0, eaPerKg: Number(p.ea_per_kg) || 0, eaPerCrate: Number(p.ea_per_crate) || 0, cratePrice: Number(p.crate_price) || 0, moq: p.moq || 1, stock: p.stock || 0, pack: p.unit || "1 unit", image: p.image_url || "", slabs };
   });
   return NextResponse.json(rows);
 }
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
     brand: b.brand ?? "", category_id: cid, unit: b.pack ?? "1 unit",
     mrp: Number(b.mrp) || 0, moq: Number(b.moq) || 1, stock: Number(b.stock) || 0,
     resale_price: Number(b.resale) || 0, ea_per_kg: Number(b.eaPerKg) || 0,
+    ea_per_crate: Number(b.eaPerCrate) || 0, crate_price: Number(b.cratePrice) || 0,
     image_url: (b.image && String(b.image).trim()) || "",
     is_popular: false, is_featured: false, description: b.description ?? "",
   });
@@ -69,6 +70,7 @@ export async function PATCH(req: NextRequest) {
     category_id: cid, unit: b.pack ?? "1 unit",
     mrp: Number(b.mrp) || 0, moq: Number(b.moq) || 1, stock: Number(b.stock) || 0,
     resale_price: Number(b.resale) || 0, ea_per_kg: Number(b.eaPerKg) || 0,
+    ea_per_crate: Number(b.eaPerCrate) || 0, crate_price: Number(b.cratePrice) || 0,
     image_url: (b.image && String(b.image).trim()) || "",
   }).eq("id", b.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

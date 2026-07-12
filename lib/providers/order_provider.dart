@@ -119,6 +119,7 @@ class OrderProvider extends ChangeNotifier {
                 imageUrl: i.product.image,
                 quantity: i.quantity,
                 unitPrice: i.unitPrice,
+                orderedUnit: i.isCrate ? 'crate' : 'ea',
               ))
           .toList(),
       subtotal: subtotal,

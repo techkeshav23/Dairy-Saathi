@@ -16,8 +16,10 @@ type Item = {
   displayName?: string;        // customer-facing name (blank => hidden in app)
   category?: string;           // "" or "Uncategorized" => uncategorized
   mrp?: number | string;
-  rate?: number | string;      // selling rate (retailer price)
-  stock?: number | string;     // qty from the bill
+  rate?: number | string;      // per-PIECE selling rate (retailer price)
+  cratePrice?: number | string;// per-CRATE selling price (0 = no crate option)
+  eaPerCrate?: number | string;// pieces in one crate (0 = piece-only)
+  stock?: number | string;     // qty from the bill, in PIECES (EA)
 };
 
 const num = (v: unknown) => {
@@ -62,17 +64,21 @@ export async function POST(req: NextRequest) {
     const catId = await resolveCategory(it.category);
     const mrp = num(it.mrp);
     const rate = num(it.rate) || mrp;
-    const qty = num(it.stock);
+    const cratePrice = num(it.cratePrice);
+    const eaPerCrate = num(it.eaPerCrate);
+    const qty = num(it.stock);   // pieces (EA)
     const displayName = (it.displayName && String(it.displayName).trim()) || null;
 
     if (it.productId) {
-      // Existing product: increment stock; update mrp/category/display name if provided.
+      // Existing product: increment stock; update mrp/category/display name + crate info if provided.
       const { data: cur } = await supabaseAdmin.from("products").select("stock").eq("id", it.productId).single();
       const newStock = (Number(cur?.stock) || 0) + qty;
       const patch: any = { stock: newStock };
       if (mrp > 0) patch.mrp = mrp;
       if (catId !== null) patch.category_id = catId;
       if (displayName) patch.display_name = displayName;
+      if (eaPerCrate > 0) patch.ea_per_crate = eaPerCrate;
+      if (cratePrice > 0) patch.crate_price = cratePrice;
       const { error } = await supabaseAdmin.from("products").update(patch).eq("id", it.productId);
       if (error) { errors.push(`${it.name}: ${error.message}`); continue; }
       if (rate > 0) {
@@ -89,6 +95,7 @@ export async function POST(req: NextRequest) {
         mrp, moq: 1, stock: qty, image_url: "",
         is_popular: false, is_featured: false, description: "",
         resale_price: 0, ea_per_kg: 0,
+        ea_per_crate: eaPerCrate, crate_price: cratePrice,
       });
       if (error) { errors.push(`${it.name}: ${error.message}`); continue; }
       if (rate > 0) {

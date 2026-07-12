@@ -66,12 +66,14 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Switch a line between EA and KG. Resets qty to 1 so the number always reads in the
-  /// newly-selected unit (5 EA is not 5 KG). No-op if the product has no KG conversion.
+  /// Switch a line between EA, KG and Crate. Resets qty to 1 so the number always reads in
+  /// the newly-selected unit (5 EA is not 5 KG is not 5 crates). No-op if the product has
+  /// no conversion for the requested unit.
   void setUnit(String productId, String unit) {
     final item = _find(productId);
     if (item == null) return;
     if (unit == 'kg' && !item.product.hasKg) return;
+    if (unit == 'crate' && !item.product.hasCrate) return;
     if (item.unit == unit) return;
     item.unit = unit;
     item.quantity = 1;

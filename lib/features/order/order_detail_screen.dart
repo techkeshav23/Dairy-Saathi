@@ -125,7 +125,7 @@ class OrderDetailScreen extends StatelessWidget {
                             children: [
                               Text(line.name, maxLines: 1, overflow: TextOverflow.ellipsis,
                                   style: robotoSemiBold.copyWith(fontSize: Dimensions.fontSizeSmall)),
-                              Text('${line.quantity} × ${PriceConverter.format(line.unitPrice)}',
+                              Text('${line.qtyLabel} × ${PriceConverter.format(line.unitPrice)}',
                                   style: robotoRegular.copyWith(
                                       color: AppColors.textMedium, fontSize: Dimensions.fontSizeExtraSmall)),
                             ],

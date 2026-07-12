@@ -50,6 +50,8 @@ class SupabaseRepository implements Repository {
       description: row['description'] ?? '',
       resalePriceValue: double.tryParse('${row['resale_price']}') ?? 0,
       eaPerKg: double.tryParse('${row['ea_per_kg']}') ?? 0,
+      eaPerCrate: int.tryParse('${row['ea_per_crate']}') ?? 0,
+      cratePrice: double.tryParse('${row['crate_price']}') ?? 0,
     );
   }
 
@@ -170,7 +172,7 @@ class SupabaseRepository implements Repository {
     final res = await _client
         .from('orders')
         .select('id, status, total, created_at, '
-            'order_items(product_id, qty, unit_price, products(display_name, name, unit, image_url))')
+            'order_items(product_id, qty, unit_price, unit, products(display_name, name, unit, image_url))')
         .eq('user_id', userId)
         .order('created_at', ascending: false)
         .limit(100);
@@ -186,6 +188,7 @@ class SupabaseRepository implements Repository {
           imageUrl: p?['image_url'] ?? '',
           quantity: int.tryParse('${e['qty']}') ?? 1,
           unitPrice: double.tryParse('${e['unit_price']}') ?? 0,
+          orderedUnit: (e['unit'] ?? 'ea').toString(),
         );
       }).toList();
 

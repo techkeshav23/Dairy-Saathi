@@ -294,8 +294,11 @@ class _CartItemTile extends StatelessWidget {
   final CartItem item;
   const _CartItemTile({required this.item});
 
-  double _perUnit(double perEa) =>
-      item.unit == 'kg' && item.product.eaPerKg > 0 ? perEa * item.product.eaPerKg : perEa;
+  double _perUnit(double perEa) {
+    if (item.unit == 'kg' && item.product.eaPerKg > 0) return perEa * item.product.eaPerKg;
+    if (item.unit == 'crate' && item.product.eaPerCrate > 0) return perEa * item.product.eaPerCrate;
+    return perEa;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -351,10 +354,11 @@ class _CartItemTile extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (p.hasKg)
-                  _unitToggle(cart, p.id)
+                if (p.hasKg || p.hasCrate)
+                  Flexible(child: _unitToggle(cart, p.id))
                 else
                   const SizedBox.shrink(),
+                const SizedBox(width: Dimensions.paddingSizeSmall),
                 QuantitySelector(
                   quantity: item.quantity,
                   onIncrement: () => cart.increment(p.id),
@@ -369,7 +373,11 @@ class _CartItemTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: 10),
             child: Row(
               children: [
-                _footCol('Unit', p.hasKg ? '1 KG = ${p.eaPerKg.toStringAsFixed(1)} EA' : (p.unit.isEmpty ? '1 EA' : p.unit)),
+                _footCol('Unit', item.unit == 'crate'
+                    ? '1 Crate = ${p.eaPerCrate} EA'
+                    : p.hasKg
+                        ? '1 KG = ${p.eaPerKg.toStringAsFixed(1)} EA'
+                        : (p.unit.isEmpty ? '1 EA' : p.unit)),
                 _footCol('UOM', item.uomLabel, color: AppColors.success),
                 _footCol('Total Amt', PriceConverter.format(item.totalPrice), bold: true, alignEnd: true),
               ],
@@ -402,7 +410,7 @@ class _CartItemTile extends StatelessWidget {
       return GestureDetector(
         onTap: () => cart.setUnit(pid, value),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
             color: selected ? AppColors.success : Colors.transparent,
             borderRadius: BorderRadius.circular(30),
@@ -413,13 +421,17 @@ class _CartItemTile extends StatelessWidget {
       );
     }
 
+    final segs = <Widget>[seg('EA', 'ea')];
+    if (item.product.hasKg) segs.add(seg('KG', 'kg'));
+    if (item.product.hasCrate) segs.add(seg('Crate', 'crate'));
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: AppColors.success),
       ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [seg('EA', 'ea'), seg('KG', 'kg')]),
+      child: Row(mainAxisSize: MainAxisSize.min, children: segs),
     );
   }
 

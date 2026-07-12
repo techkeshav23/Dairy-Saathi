@@ -30,6 +30,9 @@ class OrderLine {
   final int quantity;
   final double unitPrice;
 
+  /// How the line was ordered: 'ea' (qty = pieces) or 'crate' (qty = crates).
+  final String orderedUnit;
+
   const OrderLine({
     required this.productId,
     required this.name,
@@ -37,9 +40,14 @@ class OrderLine {
     required this.imageUrl,
     required this.quantity,
     required this.unitPrice,
+    this.orderedUnit = 'ea',
   });
 
   double get total => unitPrice * quantity;
+
+  /// Quantity label including the unit, e.g. "2 crates" or "10".
+  String get qtyLabel =>
+      orderedUnit == 'crate' ? '$quantity crate${quantity == 1 ? '' : 's'}' : '$quantity';
 }
 
 enum PaymentMode { cod, online, credit, qr }

@@ -127,15 +127,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
       final address = user!.address;
 
-      // Map cart items for the order service. Always send the BASE (EA) quantity — a KG
-      // line is `ea_per_kg` pieces — because the server prices and stocks in EA.
-      final itemsData = cart.items.map((item) {
-        return {
-          'product_id': item.product.id,
-          'qty': item.baseQty,
-          'unit_price': item.unitPrice,
-        };
-      }).toList();
+      // Map cart items for the order service. Piece/KG lines send pieces (EA); a crate line
+      // sends the crate count + unit='crate' so the server prices per crate and removes
+      // `qty × ea_per_crate` pieces from stock. See CartItem.toJson().
+      final itemsData = cart.items.map((item) => item.toJson()).toList();
 
       // Call the external OrderService
       final orderId = await OrderService().placeOrder(

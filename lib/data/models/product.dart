@@ -45,6 +45,12 @@ class Product {
   /// How many base units (EA/pack) make 1 KG. 0 = product is ordered only in EA (no KG option).
   final double eaPerKg;
 
+  /// Pieces (EA) in one crate. 0 = product has no crate option (piece-only).
+  final int eaPerCrate;
+
+  /// Admin-set selling price for one full crate.
+  final double cratePrice;
+
   const Product({
     required this.id,
     required this.name,
@@ -61,10 +67,15 @@ class Product {
     this.description = '',
     this.resalePriceValue = 0,
     this.eaPerKg = 0,
+    this.eaPerCrate = 0,
+    this.cratePrice = 0,
   });
 
   /// True when the retailer can also order this product by the kilogram.
   bool get hasKg => eaPerKg > 0;
+
+  /// True when the retailer can also order this product by the crate.
+  bool get hasCrate => eaPerCrate > 0 && cratePrice > 0;
 
   /// The remote image URL for this product. Falls back to a placeholder if empty.
   String get image => imageUrl.isNotEmpty ? imageUrl : 'https://your-fallback-image-url.com/placeholder.png';
@@ -124,6 +135,8 @@ class Product {
       description: json['description'] ?? '',
       resalePriceValue: double.tryParse('${json['resale_price']}') ?? 0,
       eaPerKg: double.tryParse('${json['ea_per_kg']}') ?? 0,
+      eaPerCrate: int.tryParse('${json['ea_per_crate']}') ?? 0,
+      cratePrice: double.tryParse('${json['crate_price']}') ?? 0,
     );
   }
 }
