@@ -4,7 +4,7 @@ import { UploadCloud, Check, Loader2, CheckCircle2, Sparkles, Trash2, Plus, Info
 import { Card, CardHead } from "@/components/ui";
 import { extractBill, matchProduct, type Parsed } from "@/lib/pdf-extract";
 
-type CatalogProduct = { id: string; name: string; displayName: string; cat: string; mrp: number; rate: number; cratePrice: number; eaPerCrate: number };
+type CatalogProduct = { id: string; name: string; displayName: string; cat: string; mrp: number; rate: number; cratePrice: number; eaPerCrate: number; stock: number };
 
 // One extracted bill line, in the shape the review table works with.
 type BillLine = { name: string; crates: number; pieces: number; rate: number; amount: number };
@@ -15,8 +15,9 @@ type Row = {
   displayName: string;      // customer-facing name (blank => hidden in app)
   productId: string | null; // matched existing product
   isNew: boolean;
+  existingStock: number;    // current catalog stock (0 for new) — for the "200 + 100 = 300" view
   crates: number;           // crate count from the bill (reference only)
-  stock: number;            // pieces (EA) — becomes stock
+  stock: number;            // pieces (EA) added by this bill — becomes/adds to stock
   eaPerCrate: number;       // pieces in one crate (0 = no crate option)
   billCostPiece: number;    // amount / pieces — reference
   billCostCrate: number;    // amount / crates — reference (0 if no crate)
@@ -24,10 +25,34 @@ type Row = {
   rate: number;             // selling price PER PIECE (admin)
   cratePrice: number;       // selling price PER CRATE (admin)
   category: string;         // category name or "Uncategorized"
+  sources: BillLine[];      // original bill lines this row came from (>1 => auto-merged)
 };
 
 const UNCAT = "Uncategorized";
 const r2 = (n: number) => Math.round(n * 100) / 100;
+const norm = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+// Group bill lines by product name and merge duplicates into one (stock adds up).
+// Returns each group's combined line + the original source lines (for the "undo" split).
+function mergeLines(lines: BillLine[]): { merged: BillLine; sources: BillLine[] }[] {
+  const groups = new Map<string, BillLine[]>();
+  lines.forEach((l, idx) => {
+    const k = norm(l.name) || `__blank_${idx}`;   // blanks never merge together
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k)!.push(l);
+  });
+  return [...groups.values()].map((src) => {
+    if (src.length === 1) return { merged: src[0], sources: src };
+    const merged: BillLine = {
+      name: src[0].name,
+      crates: src.reduce((s, x) => s + x.crates, 0),
+      pieces: src.reduce((s, x) => s + x.pieces, 0),
+      rate: src[0].rate,
+      amount: src.reduce((s, x) => s + x.amount, 0),
+    };
+    return { merged, sources: src };
+  });
+}
 
 export default function BillImportPage() {
   const [busy, setBusy] = useState(false);
@@ -37,6 +62,7 @@ export default function BillImportPage() {
   const [supplier, setSupplier] = useState("");
   const [toast, setToast] = useState("");
   const [notice, setNotice] = useState("");
+  const [mergedNote, setMergedNote] = useState("");
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [cats, setCats] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +75,7 @@ export default function BillImportPage() {
       ]);
       const pData = await pRes.json();
       const cData = await cRes.json();
-      setProducts(Array.isArray(pData) ? pData.map((p: any) => ({ id: p.id, name: p.name, displayName: p.displayName || "", cat: p.cat, mrp: p.mrp, rate: p.rate, cratePrice: Number(p.cratePrice) || 0, eaPerCrate: Number(p.eaPerCrate) || 0 })) : []);
+      setProducts(Array.isArray(pData) ? pData.map((p: any) => ({ id: p.id, name: p.name, displayName: p.displayName || "", cat: p.cat, mrp: p.mrp, rate: p.rate, cratePrice: Number(p.cratePrice) || 0, eaPerCrate: Number(p.eaPerCrate) || 0, stock: Number(p.stock) || 0 })) : []);
       setCats(Array.isArray(cData) ? cData.map((c: any) => c.name).filter(Boolean) : []);
     } catch { setProducts([]); setCats([]); }
   }, []);
@@ -57,7 +83,7 @@ export default function BillImportPage() {
 
   // Build a review row from one bill line. Stock is in PIECES (EA); a crate is a bundle
   // of `eaPerCrate` pieces. Per-piece / per-crate bill cost are shown as a reference only.
-  const buildRow = (line: BillLine): Row => {
+  const buildRow = (line: BillLine, sources?: BillLine[]): Row => {
     const idx = matchProduct(line.name, products);
     const p = idx >= 0 ? products[idx] : null;
     const stock = line.pieces > 0 ? line.pieces : line.crates;               // sellable count
@@ -66,6 +92,7 @@ export default function BillImportPage() {
       selected: true, name: line.name,
       displayName: p ? p.displayName : "",
       productId: p ? p.id : null, isNew: !p,
+      existingStock: p ? p.stock : 0,
       crates: line.crates,
       stock,
       eaPerCrate: p && p.eaPerCrate > 0 ? p.eaPerCrate : eaFromBill,
@@ -75,6 +102,7 @@ export default function BillImportPage() {
       rate: p ? p.rate : 0,
       cratePrice: p ? p.cratePrice : 0,
       category: p ? (p.cat || UNCAT) : UNCAT,
+      sources: sources ?? [line],
     };
   };
 
@@ -87,7 +115,7 @@ export default function BillImportPage() {
 
   const handleFile = async (file?: File) => {
     if (!file) return;
-    setBusy(true); setFileName(file.name); setRows(null); setNotice(""); setSupplier("");
+    setBusy(true); setFileName(file.name); setRows(null); setNotice(""); setMergedNote(""); setSupplier("");
     let lines: BillLine[] | null = null;
 
     // 1) Try AI (Gemini) — reads any format + photos, and splits crate vs pieces.
@@ -127,11 +155,27 @@ export default function BillImportPage() {
       }
     }
 
-    setRows(lines.map((l) => buildRow(l)));
+    // Auto-merge duplicate lines (same product name) so stock adds up into one row.
+    const groups = mergeLines(lines);
+    setRows(groups.map((g) => buildRow(g.merged, g.sources)));
+    const dupGroups = groups.filter((g) => g.sources.length > 1);
+    if (dupGroups.length) {
+      const mergedLines = dupGroups.reduce((s, g) => s + g.sources.length, 0);
+      setMergedNote(`${mergedLines} duplicate lines auto-merged into ${dupGroups.length} product${dupGroups.length > 1 ? "s" : ""} — stock added up. Use “undo” on a row to split.`);
+    }
     setBusy(false);
   };
 
   const addRow = () => setRows((r) => [...(r ?? []), buildRow({ name: "", crates: 0, pieces: 1, rate: 0, amount: 0 })]);
+
+  // Undo an auto-merge: replace the merged row with its original source lines.
+  const splitRow = (i: number) => setRows((r) => {
+    if (!r) return r;
+    const row = r[i];
+    if (row.sources.length <= 1) return r;
+    const expanded = row.sources.map((s) => buildRow(s, [s]));
+    return [...r.slice(0, i), ...expanded, ...r.slice(i + 1)];
+  });
 
   const patch = (i: number, upd: Partial<Row>) =>
     setRows((r) => r ? r.map((row, idx) => (idx === i ? { ...row, ...upd } : row)) : r);
@@ -141,6 +185,7 @@ export default function BillImportPage() {
     const idx = matchProduct(name, products);
     const p = idx >= 0 ? products[idx] : null;
     patch(i, { name, productId: p ? p.id : null, isNew: !p,
+      existingStock: p ? p.stock : 0,
       mrp: p ? p.mrp : rows![i].mrp, rate: p ? p.rate : rows![i].rate,
       cratePrice: p ? p.cratePrice : rows![i].cratePrice,
       eaPerCrate: p && p.eaPerCrate > 0 ? p.eaPerCrate : rows![i].eaPerCrate,
@@ -174,7 +219,7 @@ export default function BillImportPage() {
       });
       const j = await res.json();
       if (!res.ok) { setToast("Failed: " + (j.error || "unknown")); setSaving(false); setTimeout(() => setToast(""), 4000); return; }
-      setRows(null); setFileName(""); setSupplier("");
+      setRows(null); setFileName(""); setSupplier(""); setMergedNote("");
       await loadData();
       setToast(`Done · ${j.created} new product${j.created === 1 ? "" : "s"} added, ${j.restocked} restocked`);
     } catch {
@@ -227,6 +272,11 @@ export default function BillImportPage() {
               <Info size={14} className="shrink-0 text-brand" />{notice}
             </div>
           )}
+          {mergedNote && (
+            <div className="flex items-center gap-2 rounded-lg border border-success-soft bg-success-soft px-3 py-2 text-[12.5px] font-medium text-success">
+              <CheckCircle2 size={14} className="shrink-0" />{mergedNote}
+            </div>
+          )}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div>
               <h2 className="text-[15px] font-semibold text-fg">Review bill items</h2>
@@ -234,7 +284,7 @@ export default function BillImportPage() {
             </div>
             <div className="sm:ml-auto flex gap-2">
               <button onClick={addRow} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-[13px] font-semibold hover:bg-card2"><Plus size={15} />Add row</button>
-              <button onClick={() => { setRows(null); setFileName(""); setNotice(""); }} className="rounded-lg border border-border px-4 py-2 text-[13px] font-semibold hover:bg-card2">Discard</button>
+              <button onClick={() => { setRows(null); setFileName(""); setNotice(""); setMergedNote(""); }} className="rounded-lg border border-border px-4 py-2 text-[13px] font-semibold hover:bg-card2">Discard</button>
               <button onClick={confirm} disabled={saving} className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white hover:opacity-95 disabled:opacity-60">
                 {saving ? <Loader2 size={15} className="spin" /> : <Check size={15} />}{saving ? "Saving…" : `Add ${selectedCount} to Catalog`}
               </button>
@@ -277,8 +327,23 @@ export default function BillImportPage() {
                         </span>
                       </td>
                       <td className="px-3 py-2 align-top text-right">
-                        <input type="number" value={r.stock} onChange={(e) => patch(i, { stock: Number(e.target.value) || 0 })} className="tnum w-16 rounded-md border border-border bg-card px-2 py-1.5 text-right outline-none focus:border-brand" />
-                        {r.crates > 0 && <div className="mt-0.5 text-[10px] text-faint">bill: {r.crates} crate</div>}
+                        {r.productId ? (
+                          <>
+                            <div className="flex items-center justify-end gap-1">
+                              <span className="tnum text-[12px] text-faint" title="current stock">{r.existingStock}</span>
+                              <span className="text-faint">+</span>
+                              <input type="number" value={r.stock} onChange={(e) => patch(i, { stock: Number(e.target.value) || 0 })} className="tnum w-14 rounded-md border border-border bg-card px-2 py-1.5 text-right outline-none focus:border-brand" />
+                            </div>
+                            <div className="mt-0.5 text-[11px] font-semibold text-success">= {r.existingStock + r.stock}</div>
+                          </>
+                        ) : (
+                          <input type="number" value={r.stock} onChange={(e) => patch(i, { stock: Number(e.target.value) || 0 })} className="tnum w-16 rounded-md border border-border bg-card px-2 py-1.5 text-right outline-none focus:border-brand" />
+                        )}
+                        {r.sources.length > 1 ? (
+                          <div className="mt-0.5 text-[10px] text-faint">
+                            {r.sources.map((s) => (s.pieces > 0 ? s.pieces : s.crates)).join(" + ")} · <button onClick={() => splitRow(i)} className="text-brand underline">undo</button>
+                          </div>
+                        ) : (r.crates > 0 && <div className="mt-0.5 text-[10px] text-faint">bill: {r.crates} crate</div>)}
                       </td>
                       <td className="px-3 py-2 align-top text-right">
                         <input type="number" value={r.eaPerCrate} onChange={(e) => patch(i, { eaPerCrate: Number(e.target.value) || 0 })} placeholder="0" className="tnum w-16 rounded-md border border-border bg-card px-2 py-1.5 text-right outline-none focus:border-brand" />

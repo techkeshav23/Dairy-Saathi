@@ -55,6 +55,15 @@ export async function POST(req: NextRequest) {
     return id;
   }
 
+  // Server-side de-dup safety net: match any un-linked row to an existing product by
+  // normalized name, so a re-import (or a name the client's matcher missed) RESTOCKS the
+  // existing product instead of creating a duplicate. Newly-created products are added to
+  // the map too, so a same-name row later in the SAME request also restocks (not duplicates).
+  const normName = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const byNorm = new Map<string, string>();
+  const { data: allProds } = await supabaseAdmin.from("products").select("id, name");
+  (allProds ?? []).forEach((p: any) => { const k = normName(p.name); if (k && !byNorm.has(k)) byNorm.set(k, p.id); });
+
   let created = 0;
   let restocked = 0;
 
@@ -68,10 +77,12 @@ export async function POST(req: NextRequest) {
     const eaPerCrate = num(it.eaPerCrate);
     const qty = num(it.stock);   // pieces (EA)
     const displayName = (it.displayName && String(it.displayName).trim()) || null;
+    const nameKey = normName(it.name);
+    const existingId = it.productId || byNorm.get(nameKey) || null;
 
-    if (it.productId) {
+    if (existingId) {
       // Existing product: increment stock; update mrp/category/display name + crate info if provided.
-      const { data: cur } = await supabaseAdmin.from("products").select("stock").eq("id", it.productId).single();
+      const { data: cur } = await supabaseAdmin.from("products").select("stock").eq("id", existingId).single();
       const newStock = (Number(cur?.stock) || 0) + qty;
       const patch: any = { stock: newStock };
       if (mrp > 0) patch.mrp = mrp;
@@ -79,11 +90,11 @@ export async function POST(req: NextRequest) {
       if (displayName) patch.display_name = displayName;
       if (eaPerCrate > 0) patch.ea_per_crate = eaPerCrate;
       if (cratePrice > 0) patch.crate_price = cratePrice;
-      const { error } = await supabaseAdmin.from("products").update(patch).eq("id", it.productId);
+      const { error } = await supabaseAdmin.from("products").update(patch).eq("id", existingId);
       if (error) { errors.push(`${it.name}: ${error.message}`); continue; }
       if (rate > 0) {
-        await supabaseAdmin.from("price_slabs").delete().eq("product_id", it.productId);
-        await supabaseAdmin.from("price_slabs").insert({ product_id: it.productId, min_qty: 1, price_per_unit: rate });
+        await supabaseAdmin.from("price_slabs").delete().eq("product_id", existingId);
+        await supabaseAdmin.from("price_slabs").insert({ product_id: existingId, min_qty: 1, price_per_unit: rate });
       }
       restocked++;
     } else {
